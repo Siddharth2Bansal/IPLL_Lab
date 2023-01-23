@@ -28,3 +28,5 @@ set B command: make B
 
 Make sure that the makefile and the codes are present in the same directory when using.
 do not change the name of the asm files if using the make command.
+
+the error in makefile when K>N in set A question is because the exit code of the program was 1 in this case.

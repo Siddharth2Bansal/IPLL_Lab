@@ -15,6 +15,7 @@ struct t_record{
 
 
 map<string, string> symtab;
+string prog_length;
 
 typedef struct line line;
 typedef struct t_record t_record;
@@ -83,9 +84,8 @@ line inter_reader()
         int i = 0;
         while(i < str.length() && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
             i++;
-        if (str[i] == '.')
-            cout << "     "<< str << endl;
-        else
+        if (str[i] != '.')
+            // cout << "     "<< str << endl;
         {
 
             string word = "";
@@ -135,12 +135,38 @@ int hexToDec(string str)
     return y;
 }
 
-string decToHex(int num)
+
+string decToHex(int n, int pad = 0)
 {
-    stringstream stream;
-    stream << hex << num;
-    return stream.str();
+    // ans string to store hexadecimal number
+    string ans = "";
+
+    while (n != 0) {
+        // remainder variable to store remainder
+        int rem = 0;
+        
+        // ch variable to store each character
+        char ch;
+        // storing remainder in rem variable.
+        rem = n % 16;
+
+        // check if temp < 10
+        if (rem < 10) {
+            ch = rem + 48;
+        }
+        else {
+            ch = rem + 55;
+        }
+        
+        // updating the ans string with the character variable
+        ans.insert(0, 1, ch);
+        n = n / 16;
+    }
+    while(ans.size()<pad)
+        ans.insert(0, 1, '0');
+    return ans;
 }
+
 
 string add(string str, string adder, int flag)
 {
@@ -187,8 +213,7 @@ string opcode(string mnemonic)
 	opcode.insert(pair <string , string> ("STA", "0C"));
 	opcode.insert(pair <string , string> ("J", "3C"));
 	opcode.insert(pair <string , string> ("JEQ", "30"));
-	opcode.insert(pair <string , string> ("COMP", "26"));
-	opcode.insert(pair <string , string> ("COMP", "14"));
+	opcode.insert(pair <string , string> ("COMP", "28"));
 	opcode.insert(pair <string , string> ("JSUB", "48"));
 	opcode.insert(pair <string , string> ("JGT", "34"));
 	opcode.insert(pair <string , string> ("MUL", "20"));
@@ -199,6 +224,36 @@ string opcode(string mnemonic)
 		return "-1";
 	
 	return opcode[mnemonic];
+}
+
+
+string get_addr(string label_x)
+{
+    string label = "";
+    string label_addr;
+    int flag = 0;
+    for(int l = 0; l < label_x.size(); l++)
+    {
+        if(label_x[l] == ',')
+        {
+            flag = 1;
+            break;
+        }
+        label += label_x[l];
+    }
+    if(symtab.find(label) != symtab.end())
+    {
+        label_addr = symtab[label];
+        if(flag)
+        {
+            label_addr = add(label_addr, "8000", 1);
+        }
+        return label_addr;
+    }
+    else
+    {
+        return "-1";
+    }
 }
 
 void pass1(string infile)
@@ -292,7 +347,7 @@ void pass1(string infile)
         cout << cur_loc <<  ' ' << setw(8) << left << line.label << setw(8) << left << line.mnemonic << line.operand << endl;
         line = reader();
     }
-
+    prog_length = decToHex(hexToDec(loc) - hexToDec(start_addr), 4);
     cout << loc <<  ' ' << setw(8) << left << line.label << setw(8) << left << line.mnemonic << line.operand << endl;
 
     cin.rdbuf(cinbuf);
@@ -301,18 +356,32 @@ void pass1(string infile)
 
 void pass2()
 {
-    // set input and output streams
+
+    ifstream in("intermdiate.txt");
+    streambuf *cinbuf = cin.rdbuf();
+    cin.rdbuf(in.rdbuf());
+
+    ofstream out("output.txt");
+    streambuf *coutbuf = cout.rdbuf();
+    cout.rdbuf(out.rdbuf());
 
     line line;
-    string start_addr, object;
+    string start_addr, object, len_buf;
 
     line = inter_reader();
     if(line.mnemonic == "START")
     {
         start_addr = line.operand;
+        cout << "H" << setw(6) << left << line.label << "00" << start_addr << "00" << prog_length << endl;
         line = inter_reader();
     }
-    // write header record.
+    else
+    {
+        start_addr = "0000";
+
+        cout << "H" << setw(6) << left << "PROG" << "00" << start_addr << "00" << prog_length << endl;
+    }
+    
     t_record t_record;
     t_record.start = start_addr;
     t_record.len = 0;
@@ -320,18 +389,31 @@ void pass2()
     while(line.mnemonic != "END")
     {   
         object = "";
-        if(opcode(line.mnemonic) != "-1")
+        if(line.mnemonic == "RESB" || line.mnemonic == "RESW")
+        {   
+            if(t_record.len != 0)
+            {
+                cout << "T" << "00" << t_record.start << decToHex(t_record.len, 2) <<t_record.objectCode << endl;
+                t_record.len = 0;
+                t_record.start = "";
+                t_record.objectCode = "";
+            }
+
+            line = inter_reader();
+            continue;
+        }
+        else if(opcode(line.mnemonic) != "-1")
         {
             object += opcode(line.mnemonic);
             if(line.operand != "")
             {
-                if(symtab.find(line.operand) != symtab.end())
+                if(get_addr(line.operand) == "-1")
                 {
-                    object += symtab[line.operand];
+                    // unidentified symbol error
                 }
                 else
                 {
-                    // unidentified symbol error
+                    object += get_addr(line.operand);
                 }
             }
             else
@@ -339,36 +421,64 @@ void pass2()
                 object += "0000";
             }
         }
-        else if (line.mnemonic == "BYTE" || line.mnemonic == "WORD")
+        else if (line.mnemonic == "BYTE")
         {
             // assmeble into string and store as object
+            if(line.operand[0] == 'C')
+			{
+				for(int i = 2; i < line.operand.size()-1; i++)
+				{
+					int ascii = line.operand[i];
+					object += (decToHex(ascii));
+				}
+			}
+			else
+			{
+                if(line.operand.size() % 2 == 0)
+                    object += "0";
+				for(int i = 2; i < line.operand.size()-1; i++)
+				{
+					object += (line.operand[i]);
+				}
+			}
+        }
+        else if (line.mnemonic == "WORD")
+        {
+
+			object += decToHex(atoi(line.operand.c_str()), 6);
         }
         if (t_record.len + (object.size()/2) > t_record_max)
         {
-            cout << "T" << "00" << t_record.start << /*len in hex*/"00"<<t_record.objectCode << endl;
+            cout << "T" << "00" << t_record.start << decToHex(t_record.len, 2) <<t_record.objectCode << endl;
             t_record.len = 0;
-            t_record.start = line.addr;
+            t_record.start = "";
             t_record.objectCode = "";
         }
         t_record.len += (object.size()/2);
         t_record.objectCode += object;
+        t_record.start = (t_record.start == "") ? line.addr : t_record.start;
         line = inter_reader();
     }
-    cout << "T" << "00" << t_record.start << /*len in hex*/"00"<<t_record.objectCode << endl;
+    if(t_record.len)
+        cout << "T" << "00" << t_record.start << decToHex(t_record.len, 2) << t_record.objectCode << endl;
     string prog_start;
-    if(symtab.find(line.operand) != symtab.end())
-    {
-        prog_start = symtab[line.operand];
-    }
-    else if(line.operand == "")
+    
+    if(line.operand == "")
     {
         prog_start = start_addr;
+    }
+    else if(get_addr(line.operand) != "-1")
+    {
+        prog_start = get_addr(line.operand);
     }
     else
     {
         // unidentified symbol error
     }
-    cout << "E" << "00" << prog_start;
+    cout << "E" << "00" << prog_start << endl;
+
+    cin.rdbuf(cinbuf);
+    cout.rdbuf(coutbuf);
 }
 
 
@@ -385,6 +495,6 @@ int main(int argc, char **argv)
 	// string input = argv[1];
     string input = "sample_input.txt";
 	pass1(input);
-
+    pass2();
 	return 0;
 }

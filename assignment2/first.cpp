@@ -2,13 +2,22 @@
 
 using namespace std;
 
+#define t_record_max 30
+
 struct line{
-    string label, mnemonic, operand;
+    string label, mnemonic, operand, addr;
 };
+
+struct t_record{
+    string start, objectCode;
+    int len;
+};
+
 
 map<string, string> symtab;
 
 typedef struct line line;
+typedef struct t_record t_record;
 
 line reader()
 {
@@ -46,13 +55,15 @@ line reader()
 
     }
     if(arr.size() == 3)
-    {
+    {   
+        code.addr = "";
         code.label = arr[0];
         code.mnemonic = arr[1];
         code.operand = arr[2];
     }
     else
     {
+        code.addr = "";
         code.label = "";
         code.mnemonic = arr[0];
         code.operand = (arr.size() == 2)? arr[1] : "";
@@ -60,6 +71,60 @@ line reader()
 
     return code;
 }
+
+line inter_reader()
+{
+    string str;
+    vector<string> arr;
+    line code;
+    while(true)
+    {
+        getline(cin, str);
+        int i = 0;
+        while(i < str.length() && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
+            i++;
+        if (str[i] == '.')
+            cout << "     "<< str << endl;
+        else
+        {
+
+            string word = "";
+            for (auto x : str)
+            {
+                if (x == ' ')
+                {
+                    if(word != "")
+                        arr.push_back(word);
+                    word = "";
+                }
+                else {
+                    word = word + x;
+                }
+            }
+            arr.push_back(word);
+
+            break;
+        }
+
+    }
+    if(arr.size() == 4)
+    {   
+        code.addr = arr[0];
+        code.label = arr[1];
+        code.mnemonic = arr[2];
+        code.operand = arr[3];
+    }
+    else
+    {
+        code.addr = arr[0];
+        code.label = "";
+        code.mnemonic = arr[1];
+        code.operand = (arr.size() == 3)? arr[2] : "";
+    }
+
+    return code;
+}
+
 
 int hexToDec(string str)
 {
@@ -170,8 +235,7 @@ void pass1(string infile)
         {
             if(symtab.find(line.label) != symtab.end())
             {
-                // error 
-                // set stuff here.
+                // duplicate symbol error
             }
             else
             {
@@ -234,6 +298,79 @@ void pass1(string infile)
     cin.rdbuf(cinbuf);
     cout.rdbuf(coutbuf);
 }
+
+void pass2()
+{
+    // set input and output streams
+
+    line line;
+    string start_addr, object;
+
+    line = inter_reader();
+    if(line.mnemonic == "START")
+    {
+        start_addr = line.operand;
+        line = inter_reader();
+    }
+    // write header record.
+    t_record t_record;
+    t_record.start = start_addr;
+    t_record.len = 0;
+    t_record.objectCode = "";
+    while(line.mnemonic != "END")
+    {   
+        object = "";
+        if(opcode(line.mnemonic) != "-1")
+        {
+            object += opcode(line.mnemonic);
+            if(line.operand != "")
+            {
+                if(symtab.find(line.operand) != symtab.end())
+                {
+                    object += symtab[line.operand];
+                }
+                else
+                {
+                    // unidentified symbol error
+                }
+            }
+            else
+            {
+                object += "0000";
+            }
+        }
+        else if (line.mnemonic == "BYTE" || line.mnemonic == "WORD")
+        {
+            // assmeble into string and store as object
+        }
+        if (t_record.len + (object.size()/2) > t_record_max)
+        {
+            cout << "T" << "00" << t_record.start << /*len in hex*/"00"<<t_record.objectCode << endl;
+            t_record.len = 0;
+            t_record.start = line.addr;
+            t_record.objectCode = "";
+        }
+        t_record.len += (object.size()/2);
+        t_record.objectCode += object;
+        line = inter_reader();
+    }
+    cout << "T" << "00" << t_record.start << /*len in hex*/"00"<<t_record.objectCode << endl;
+    string prog_start;
+    if(symtab.find(line.operand) != symtab.end())
+    {
+        prog_start = symtab[line.operand];
+    }
+    else if(line.operand == "")
+    {
+        prog_start = start_addr;
+    }
+    else
+    {
+        // unidentified symbol error
+    }
+    cout << "E" << "00" << prog_start;
+}
+
 
 int main(int argc, char **argv)
 {

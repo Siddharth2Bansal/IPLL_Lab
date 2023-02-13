@@ -3,7 +3,7 @@
 using namespace std;
 
 #define t_record_max 30
-
+// struct for parsed line
 struct line{
     string label, mnemonic, operand, addr;
 };
@@ -20,6 +20,7 @@ string prog_length;
 typedef struct line line;
 typedef struct t_record t_record;
 
+// reads line from input, printing comments to intermediate file, parses the first instruction and returns the struct 
 line reader()
 {
     string str;
@@ -29,32 +30,31 @@ line reader()
     {
         getline(cin, str);
         int i = 0;
-        while(i < str.length() && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
+        while(i < str.length() && (str[i] == ' ' || str[i] == '\t'))
             i++;
+            // skip comments
         if (str[i] == '.')
             cout << "     "<< str << endl;
         else
         {
-
             string word = "";
             for (auto x : str)
             {
-                if (x == ' ')
+                if(x == ' ')
                 {
                     if(word != "")
                         arr.push_back(word);
                     word = "";
                 }
-                else {
+                else 
                     word = word + x;
-                }
             }
             arr.push_back(word);
-
             break;
         }
 
     }
+    // decide what a word is depending on the number of words in the line.
     if(arr.size() == 3)
     {   
         code.addr = "";
@@ -73,6 +73,8 @@ line reader()
     return code;
 }
 
+// line reader from the intermediate file.
+// similar to reader() expect doesnt print comments and slight change in assigning the words in the line due to addition of address.
 line inter_reader()
 {
     string str;
@@ -125,7 +127,7 @@ line inter_reader()
     return code;
 }
 
-
+// convert hexadecimal string to int
 int hexToDec(string str)
 {
     int y;
@@ -135,39 +137,33 @@ int hexToDec(string str)
     return y;
 }
 
-
+// convert int to hexadecimal string padding it to minimum lenght = pad
 string decToHex(int n, int pad = 0)
 {
-    // ans string to store hexadecimal number
     string ans = "";
-
-    while (n != 0) {
-        // remainder variable to store remainder
+    char ch;
+    while (n != 0) 
+    {
         int rem = 0;
-        
-        // ch variable to store each character
-        char ch;
-        // storing remainder in rem variable.
         rem = n % 16;
 
-        // check if temp < 10
-        if (rem < 10) {
+        if (rem < 10)
             ch = rem + 48;
-        }
-        else {
+        else 
             ch = rem + 55;
-        }
-        
-        // updating the ans string with the character variable
+    
         ans.insert(0, 1, ch);
         n = n / 16;
     }
     while(ans.size()<pad)
         ans.insert(0, 1, '0');
+
     return ans;
 }
 
-
+// add the two strings str and adder
+// if flag is set, the two strings are assumed to be in hexadecimal form
+// else the second string is in decimal form
 string add(string str, string adder, int flag)
 {
 	//Adding hex and hex
@@ -184,42 +180,44 @@ string add(string str, string adder, int flag)
 		int num1 = hexToDec(str);
 		int num2 = atoi(adder.c_str());
 		int sum = num1 + num2;
-
 		return decToHex(sum);
 	}
 }
 
+// optable initialization
 void init_optable()
 {
-	optable.insert(pair <string , string> ("ADD", "18"));
-	optable.insert(pair <string , string> ("SUB", "1C"));
-	optable.insert(pair <string , string> ("MUL", "20"));
-	optable.insert(pair <string , string> ("DIV", "24"));
-	optable.insert(pair <string , string> ("COMP", "28"));
-	optable.insert(pair <string , string> ("J", "3C"));
-	optable.insert(pair <string , string> ("JEQ", "30"));
-	optable.insert(pair <string , string> ("JLT", "38"));
-	optable.insert(pair <string , string> ("JGT", "34"));
-	optable.insert(pair <string , string> ("LDA", "00"));
-	optable.insert(pair <string , string> ("LDX", "04"));
-	optable.insert(pair <string , string> ("LDL", "08"));
-	optable.insert(pair <string , string> ("RD", "D8"));
-	optable.insert(pair <string , string> ("WD", "DC"));
-	optable.insert(pair <string , string> ("LDCH", "50"));
-	optable.insert(pair <string , string> ("STX", "10"));
-	optable.insert(pair <string , string> ("TIX", "2C"));
-	optable.insert(pair <string , string> ("TD", "E0"));
-	optable.insert(pair <string , string> ("STCH", "54"));
-	optable.insert(pair <string , string> ("STL", "14"));
-	optable.insert(pair <string , string> ("RSUB", "4C"));
-	optable.insert(pair <string , string> ("STA", "0C"));
-	optable.insert(pair <string , string> ("JSUB", "48"));
-	optable.insert(pair <string , string> ("OR", "44"));
-	optable.insert(pair <string , string> ("STSW", "E8"));
+	optable["ADD"]="18";
+    optable["AND"]="40";
+	optable["COMP"]="28";
+	optable["DIV"]="24";
+	optable["J"]="3C";
+	optable["JEQ"]="30";
+	optable["JGT"]="34";
+	optable["JLT"]="38";
+	optable["JSUB"]="48";
+	optable["LDA"]="00";
+	optable["LDCH"]="50";
+	optable["LDL"]="08";
+	optable["LDX"]="04";
+	optable["MUL"]="20";
+    optable["OR"]="44";
+	optable["RD"]="D8";
+	optable["RSUB"]="4C";
+	optable["STA"]="0C";
+	optable["STCH"]="54";
+	optable["STSW"]="E8";
+	optable["STL"]="14";
+	optable["STX"]="10";
+	optable["SUB"]="1C";
+	optable["TD"]="E0";
+	optable["TIX"]="2C";
+	optable["WD"]="DC";
 }
 
 
-// op_table
+// function to browse optable
+// return opcode if mnemonic is  present in optable, else "-1"
 string opcode(string mnemonic)
 {
 
@@ -228,7 +226,8 @@ string opcode(string mnemonic)
 	return optable[mnemonic];
 }
 
-
+// get address of the label from symbol table while addressing(lol) the indirect addressing
+// returns "-1" on invalid symbol
 string get_addr(string label_x)
 {
     string label = "";
@@ -258,8 +257,11 @@ string get_addr(string label_x)
     }
 }
 
+// first pass of the assmebler code
+// reads line one by one and processes them.
 void pass1(string infile)
 {
+    // redirect input and output, storing the previous buffers
     ifstream in(infile);
     streambuf *cinbuf = cin.rdbuf();
     cin.rdbuf(in.rdbuf());
@@ -276,12 +278,12 @@ void pass1(string infile)
     if (line.mnemonic == "START")
     {
         start_addr = line.operand;
-        
         cout << start_addr << ' ' << setw(8) << left << line.label << setw(8) << left << line.mnemonic << line.operand << endl;
         line = reader();
     }
     else 
     {
+        // default starting address
         start_addr = "0000";
     }
     loc = start_addr;
@@ -290,6 +292,7 @@ void pass1(string infile)
         cur_loc = loc;
         if(line.label != "")
         {
+            // populating symbol table everytime a label is encountered.
             if(symtab.find(line.label) != symtab.end())
             {
                 cin.rdbuf(cinbuf);
@@ -302,45 +305,42 @@ void pass1(string infile)
                 symtab[line.label] = loc;
             }
         }
+        // increment present instruction location according to the instruction
         if(opcode(line.mnemonic) != "-1")
         {
-            loc = add(loc, "3", 0);
+            loc = add(loc, "3", 0); // instructions present in optable are 3 byte long
         }
         else if(line.mnemonic == "WORD")
         {
-            loc = add(loc, "3", 0);
+            loc = add(loc, "3", 0); // size of word = 3 bytes
         }
         else if(line.mnemonic == "RESW")
         {
             int reserve = 3 * atoi(line.operand.c_str());
             string hexaReserve = decToHex(reserve);
-            loc = add(loc, hexaReserve, 1);
+            loc = add(loc, hexaReserve, 1);     // reserved size = 3 * number of words reserved
         }
         else if(line.mnemonic == "RESB")
         {
             int reserve = atoi(line.operand.c_str());
             string hexaReserve = decToHex(reserve);
-            loc = add(loc, hexaReserve, 1);
+            loc = add(loc, hexaReserve, 1); // reserved size = number of bytes reserved
         }
-        else if(line.mnemonic == "BYTE")
+        else if(line.mnemonic == "BYTE")    // find the size of constant and increment loc by that much
         {
             int bytes;
             string label2 = line.operand;
             char ch = label2[0];
             if(ch == 'C')
             {
-                bytes = (label2.size() - 3);
+                bytes = (label2.size() - 3);    //the characters present in label2 are C'<const>'
             }
-            else
+            else                                // the constant is present in hexadecimal form
             {
                 if((label2.size() - 3) % 2 == 0)
-                {
                     bytes = (label2.size() -3) / 2;
-                }
                 else
-                {
                     bytes = ((label2.size() - 3) / 2) + 1;
-                }
             }
             loc = add(loc, to_string(bytes), 1);
 
@@ -357,14 +357,16 @@ void pass1(string infile)
     }
     prog_length = decToHex(hexToDec(loc) - hexToDec(start_addr), 4);
     cout << loc <<  ' ' << setw(8) << left << line.label << setw(8) << left << line.mnemonic << line.operand << endl;
-
+    // redirect the standart input and output back to default.
     cin.rdbuf(cinbuf);
     cout.rdbuf(coutbuf);
 }
 
+// second pass of the assembler
+// generate binary code and put into records
 void pass2()
 {
-
+    // redirect I/O
     ifstream in("intermdiate.txt");
     streambuf *cinbuf = cin.rdbuf();
     cin.rdbuf(in.rdbuf());
@@ -377,6 +379,7 @@ void pass2()
     string start_addr, object, len_buf;
 
     line = inter_reader();
+    // if "START" present, starting location is its operand
     if(line.mnemonic == "START")
     {
         start_addr = line.operand;
@@ -386,10 +389,9 @@ void pass2()
     else
     {
         start_addr = "0000";
-
         cout << "H" << setw(6) << left << "PROG" << "00" << start_addr << "00" << prog_length << endl;
     }
-    
+    // initialize first T record
     t_record t_record;
     t_record.start = start_addr;
     t_record.len = 0;
@@ -397,7 +399,7 @@ void pass2()
     while(line.mnemonic != "END")
     {   
         object = "";
-        if(line.mnemonic == "RESB" || line.mnemonic == "RESW")
+        if(line.mnemonic == "RESB" || line.mnemonic == "RESW")  // end current T record on encountering a "RESB" or "RESW"
         {   
             if(t_record.len != 0)
             {
@@ -410,12 +412,12 @@ void pass2()
             line = inter_reader();
             continue;
         }
-        else if(opcode(line.mnemonic) != "-1")
+        else if(opcode(line.mnemonic) != "-1")      // if mnemonic present in optable, convert the OPCODE OPERAND into binary
         {
             object += opcode(line.mnemonic);
             if(line.operand != "")
             {
-                if(get_addr(line.operand) == "-1")
+                if(get_addr(line.operand) == "-1")  // handle unidentified operand
                 {
                     cin.rdbuf(cinbuf);
                     cout.rdbuf(coutbuf);
@@ -427,12 +429,12 @@ void pass2()
                     object += get_addr(line.operand);
                 }
             }
-            else
+            else    // when the operand is not present, the address can be anything without impacting the code, set as 0000 default.
             {
                 object += "0000";
             }
         }
-        else if (line.mnemonic == "BYTE")
+        else if (line.mnemonic == "BYTE")   // constant is converted(if needed) to hexadecimal form and then stored as binary.
         {
             // assmeble into string and store as object
             if(line.operand[0] == 'C')
@@ -453,11 +455,12 @@ void pass2()
 				}
 			}
         }
-        else if (line.mnemonic == "WORD")
+        else if (line.mnemonic == "WORD")   // direct conversion into binary with padding if needed.
         {
 
 			object += decToHex(atoi(line.operand.c_str()), 6);
         }
+        // if record full, print current record and initialize new record.
         if (t_record.len + (object.size()/2) > t_record_max)
         {
             cout << "T" << "00" << t_record.start << decToHex(t_record.len, 2) <<t_record.objectCode << endl;
@@ -470,10 +473,11 @@ void pass2()
         t_record.start = (t_record.start == "") ? line.addr : t_record.start;
         line = inter_reader();
     }
+    // print final record, if any left to print
     if(t_record.len)
         cout << "T" << "00" << t_record.start << decToHex(t_record.len, 2) << t_record.objectCode << endl;
     string prog_start;
-    
+    // if END is not followed by a label, assume the program starts at the starting address else program starts at teh supplied label
     if(line.operand == "")
     {
         prog_start = start_addr;
@@ -482,7 +486,7 @@ void pass2()
     {
         prog_start = get_addr(line.operand);
     }
-    else
+    else                // again, unientified symbol error
     {
         cin.rdbuf(cinbuf);
         cout.rdbuf(coutbuf);
@@ -490,20 +494,20 @@ void pass2()
         return;
     }
     cout << "E" << "00" << prog_start << endl;
-
+    // reset I/O to default
     cin.rdbuf(cinbuf);
     cout.rdbuf(coutbuf);
 }
 
-
+// function to print optable and symbol table
 void print_tables()
-{
+{   
+    // output redirection
     ofstream out("symbol_table.txt");
     streambuf *coutbuf = cout.rdbuf();
     cout.rdbuf(out.rdbuf());
     
-
-    cout << setw(10) << left << "SYMBOL" << "|  " << setw(5) << left << "ADDRESS" << endl;
+    cout << setw(10) << left << "SYMBOL" << "|  " << setw(5) << left << "ADDRESS" << endl << endl;
 
     for(auto i : symtab)
         cout << setw(10) << left << i.first << "|  " << setw(5) << left << i.second << endl;
@@ -512,11 +516,11 @@ void print_tables()
     cout.rdbuf(out2.rdbuf());
 
 
-    cout << setw(10) << left << "Mnemonic" << "|  " << setw(5) << left << "Binary" << endl;
+    cout << setw(10) << left << "Mnemonic" << "|  " << setw(5) << left << "Binary" << endl << endl;
 
     for(auto i : optable)
         cout << setw(10) << left << i.first << "|  " << setw(5) << left << i.second << endl;
-    
+    // reset output stream
     cout.rdbuf(coutbuf);
 }
 
@@ -529,10 +533,9 @@ int main(int argc, char **argv)
 		cout << "Usage: ./a.out {source file}\n";
 		return 0;
 	}
+	string input = argv[1];
 
 	// run the  2-pass assembler
-	string input = argv[1];
-    // string input = "sample_input.txt";
     init_optable();
 	pass1(input);
     print_tables();

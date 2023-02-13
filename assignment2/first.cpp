@@ -14,7 +14,7 @@ struct t_record{
 };
 
 
-map<string, string> symtab;
+map<string, string> symtab, optable;
 string prog_length;
 
 typedef struct line line;
@@ -189,41 +189,43 @@ string add(string str, string adder, int flag)
 	}
 }
 
+void init_optable()
+{
+	optable.insert(pair <string , string> ("ADD", "18"));
+	optable.insert(pair <string , string> ("SUB", "1C"));
+	optable.insert(pair <string , string> ("MUL", "20"));
+	optable.insert(pair <string , string> ("DIV", "24"));
+	optable.insert(pair <string , string> ("COMP", "28"));
+	optable.insert(pair <string , string> ("J", "3C"));
+	optable.insert(pair <string , string> ("JEQ", "30"));
+	optable.insert(pair <string , string> ("JLT", "38"));
+	optable.insert(pair <string , string> ("JGT", "34"));
+	optable.insert(pair <string , string> ("LDA", "00"));
+	optable.insert(pair <string , string> ("LDX", "04"));
+	optable.insert(pair <string , string> ("LDL", "08"));
+	optable.insert(pair <string , string> ("RD", "D8"));
+	optable.insert(pair <string , string> ("WD", "DC"));
+	optable.insert(pair <string , string> ("LDCH", "50"));
+	optable.insert(pair <string , string> ("STX", "10"));
+	optable.insert(pair <string , string> ("TIX", "2C"));
+	optable.insert(pair <string , string> ("TD", "E0"));
+	optable.insert(pair <string , string> ("STCH", "54"));
+	optable.insert(pair <string , string> ("STL", "14"));
+	optable.insert(pair <string , string> ("RSUB", "4C"));
+	optable.insert(pair <string , string> ("STA", "0C"));
+	optable.insert(pair <string , string> ("JSUB", "48"));
+	optable.insert(pair <string , string> ("OR", "44"));
+	optable.insert(pair <string , string> ("STSW", "E8"));
+}
+
+
 // op_table
 string opcode(string mnemonic)
 {
-    map <string, string> opcode;
-	opcode.insert(pair <string , string> ("LDA", "00"));
-	opcode.insert(pair <string , string> ("AND", "40"));
-	opcode.insert(pair <string , string> ("DIV", "24"));
-	opcode.insert(pair <string , string> ("SUB", "1C"));
-	opcode.insert(pair <string , string> ("ADD", "18"));
-	opcode.insert(pair <string , string> ("LDL", "08"));
-	opcode.insert(pair <string , string> ("RD", "D8"));
-	opcode.insert(pair <string , string> ("WD", "DC"));
-	opcode.insert(pair <string , string> ("LDCH", "50"));
-	opcode.insert(pair <string , string> ("STX", "10"));
-	opcode.insert(pair <string , string> ("JLT", "38"));
-	opcode.insert(pair <string , string> ("TIX", "2C"));
-	opcode.insert(pair <string , string> ("TD", "E0"));
-	opcode.insert(pair <string , string> ("STCH", "54"));
-	opcode.insert(pair <string , string> ("STL", "14"));
-	opcode.insert(pair <string , string> ("LDX", "04"));
-	opcode.insert(pair <string , string> ("RSUB", "4C"));
-	opcode.insert(pair <string , string> ("STA", "0C"));
-	opcode.insert(pair <string , string> ("J", "3C"));
-	opcode.insert(pair <string , string> ("JEQ", "30"));
-	opcode.insert(pair <string , string> ("COMP", "28"));
-	opcode.insert(pair <string , string> ("JSUB", "48"));
-	opcode.insert(pair <string , string> ("JGT", "34"));
-	opcode.insert(pair <string , string> ("MUL", "20"));
-	opcode.insert(pair <string , string> ("OR", "44"));
-	opcode.insert(pair <string , string> ("STSW", "E8"));
 
-	if(opcode.find(mnemonic) == opcode.end())
+	if(optable.find(mnemonic) == optable.end())
 		return "-1";
-	
-	return opcode[mnemonic];
+	return optable[mnemonic];
 }
 
 
@@ -290,7 +292,10 @@ void pass1(string infile)
         {
             if(symtab.find(line.label) != symtab.end())
             {
-                // duplicate symbol error
+                cin.rdbuf(cinbuf);
+                cout.rdbuf(coutbuf);
+                cout << "Duplicate Symbol definition used" << endl;
+                return;
             }
             else
             {
@@ -342,7 +347,10 @@ void pass1(string infile)
         }
         else
         {
-            // invalid opcode error.
+            cin.rdbuf(cinbuf);
+            cout.rdbuf(coutbuf);
+            cout << "Invalid opcode used" << endl;
+            return;
         }
         cout << cur_loc <<  ' ' << setw(8) << left << line.label << setw(8) << left << line.mnemonic << line.operand << endl;
         line = reader();
@@ -409,7 +417,10 @@ void pass2()
             {
                 if(get_addr(line.operand) == "-1")
                 {
-                    // unidentified symbol error
+                    cin.rdbuf(cinbuf);
+                    cout.rdbuf(coutbuf);
+                    cout << "Unidentified Symbol usage encountered" << endl;
+                    return;
                 }
                 else
                 {
@@ -473,7 +484,10 @@ void pass2()
     }
     else
     {
-        // unidentified symbol error
+        cin.rdbuf(cinbuf);
+        cout.rdbuf(coutbuf);
+        cout << "Unidentified Symbol usage encountered" << endl;
+        return;
     }
     cout << "E" << "00" << prog_start << endl;
 
@@ -482,19 +496,46 @@ void pass2()
 }
 
 
+void print_tables()
+{
+    ofstream out("symbol_table.txt");
+    streambuf *coutbuf = cout.rdbuf();
+    cout.rdbuf(out.rdbuf());
+    
+
+    cout << setw(10) << left << "SYMBOL" << "|  " << setw(5) << left << "ADDRESS" << endl;
+
+    for(auto i : symtab)
+        cout << setw(10) << left << i.first << "|  " << setw(5) << left << i.second << endl;
+    
+    ofstream out2("optable.txt");
+    cout.rdbuf(out2.rdbuf());
+
+
+    cout << setw(10) << left << "Mnemonic" << "|  " << setw(5) << left << "Binary" << endl;
+
+    for(auto i : optable)
+        cout << setw(10) << left << i.first << "|  " << setw(5) << left << i.second << endl;
+    
+    cout.rdbuf(coutbuf);
+}
+
+
 int main(int argc, char **argv)
 {
 	// check that the input is provided in the proper format
-	// if(argc != 2)
-	// {
-	// 	cout << "Usage: ./a.out {source file}\n";
-	// 	return 0;
-	// }
+	if(argc != 2)
+	{
+		cout << "Usage: ./a.out {source file}\n";
+		return 0;
+	}
 
 	// run the  2-pass assembler
-	// string input = argv[1];
-    string input = "sample_input.txt";
+	string input = argv[1];
+    // string input = "sample_input.txt";
+    init_optable();
 	pass1(input);
+    print_tables();
     pass2();
 	return 0;
 }

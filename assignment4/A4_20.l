@@ -1,4 +1,3 @@
-
     /* Mapping of token and token manifest constant */
 
 %{
@@ -33,6 +32,41 @@ STRING_LITERAL          \"({S_CHAR_SEQUENCE}?)\"
 WHITESPACE              [ \t\r]
 
 %%
+"("                         {return ROUND_BRACE_OPEN;}                         
+")"                         {return ROUND_BRACE_CLOSE;}
+"{"                         {return CURLY_BRACE_OPEN;}
+"}"                         {return CURLY_BRACE_CLOSE;}
+"["                         {return SQ_BRACE_OPEN;}
+"]"                         {return SQ_BRACE_CLOSE;}
+"int"                       {return INT;}
+"void"                      {return VOID;}
+"char"                      {return CHAR;}
+","                         {return COMMA;}
+";"                         {return SEMI_COLON;}
+":"                         {return COLON;}
+"?"                         {return QUESTION_MARK;}
+"=="                        {return EQ_OP;}    
+"!="                        {return NE_OP;}    
+"<="                        {return LTE_OP;}    
+">="                        {return GTE_OP;}    
+"&&"                        {return AND_OP;}    
+"||"                        {return OR_OP;}    
+"<"                         {return LESS_THAN;}
+">"                         {return GREATER_THAN;}
+"."                         {return DOT;}
+"&"                         {return BITWISEAND;}
+"|"                         {return BITWISEOR;}
+"*"                         {return STAR;}
+"+"                         {return PLUS;}
+"-"                         {return MINUS;}
+"/"                         {return DIVIDE;}
+"%"                         {return PERCENTAGE;}
+"#"                         {return HASH;}
+"if"                        {return IF;}
+"else"                      {return ELSE;}
+"for"                       {return FOR;}
+"return"                    {return RETURN;}
+
 
 
 {IDENTIFIER}                {return IDENTIFIER;}

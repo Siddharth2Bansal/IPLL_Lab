@@ -10,28 +10,16 @@ void yyerror(char *);
 
 %token IDENTIFIER STRING_LITERAL INTEGER_CONSTANT CHARACTER_CONSTANT
 %define parse.error verbose
-
-%token "->" '='
-%token CURLY_BRACE_OPEN CURLY_BRACE_CLOSE PARENTHESIS_OPEN PARENTHESIS_CLOSE SQR_BRACE_OPEN SQR_BRACE_CLOSE
-%token COLON SEMI_COLON ELLIPSIS QUESTION_MARK
-%token SIZEOF
-%token LEFT_OP RIGHT_OP EQ_OP NE_OP LTE_OP GTE_OP
+%verbose
+%token PTR EQ
+%token CURLY_BRACE_OPEN CURLY_BRACE_CLOSE ROUND_BRACE_OPEN ROUND_BRACE_CLOSE SQ_BRACE_OPEN SQ_BRACE_CLOSE
+%token COLON SEMI_COLON QUESTION_MARK
+%token EQ_OP NE_OP LTE_OP GTE_OP
 %token AND_OP OR_OP 
-%token ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN RIGHT_ASSIGN LEFT_ASSIGN OR_ASSIGN AND_ASSIGN XOR_ASSIGN
-%token LESS_THAN GREATER_THAN DOT BITWISEAND BITWISEOR BITWISEXOR STAR PLUS MINUS NOT EXCLAMATION DIVIDE PERCENTAGE COMMA HASH
+%token LESS_THAN GREATER_THAN DOT BITWISEAND BITWISEOR STAR PLUS MINUS EXCLAMATION DIVIDE PERCENTAGE COMMA HASH
 
-%token EXTERN STATIC AUTO REGISTER
-%token VOID CHAR SHORT INT LONG FLOAT DOUBLE SIGNED UNSIGNED BOOL COMPLEX IMAGINARY
-%token CONST ENUM INLINE RESTRICT VOLATILE
-%token IF ELSE SWITCH  CASE DEFAULT WHILE CONTINUE DO GOTO FOR RETURN BREAK
-%token STRUCT TYPEDEF UNION
-
-%token <sVal> IDENTIFIER
-%token <iVal> INTEGER_CONSTANT
-%token <fVal> FLOATING_CONSTANT
-%token <cVal> CHARACTER_CONSTANT
-%token <sVal> STRING_LITERAL
-
+%token VOID CHAR INT
+%token IF ELSE FOR RETURN 
 %token INVALID_TOKEN 
 
 %nonassoc PARENTHESIS_CLOSE
@@ -47,7 +35,7 @@ primary_expression:
     | INTEGER_CONSTANT          {printf("INTEGER_CONSTANT to primary_expression.\n");}
     | CHARACTER_CONSTANT        {printf("CHARACTER_CONSTANT to primary_expression.\n");}
     | STRING_LITERAL            {printf("STRING_LITERAL to primary_expression.\n");}
-    | '(' expression ')'       {printf("(expression) to primary_expression.\n");}
+    | ROUND_BRACE_OPEN expression ROUND_BRACE_CLOSE       {printf("(expression) to primary_expression.\n");}
     ;
 
 argument_expression_list_opt:
@@ -57,14 +45,14 @@ argument_expression_list_opt:
 
 postfix_expression:
     primary_expression                                          {printf("primary_expression to postfix_expression.\n");}
-    | postfix_expression '[' expression ']'                    {printf("[expression] to postfix_expression.\n");}
-    | postfix_expression '(' argument_expression_list_opt ')'   {printf("(argument_expression_list_opt) to postfix_expression.\n");}
-    | postfix_expression "->" IDENTIFIER                        {printf("IDENTIFIER to postfix_expression.\n");}
+    | postfix_expression SQ_BRACE_OPEN expression SQ_BRACE_CLOSE                    {printf("[expression] to postfix_expression.\n");}
+    | postfix_expression ROUND_BRACE_OPEN argument_expression_list_opt ROUND_BRACE_CLOSE   {printf("(argument_expression_list_opt) to postfix_expression.\n");}
+    | postfix_expression PTR IDENTIFIER                        {printf("IDENTIFIER to postfix_expression.\n");}
     ;
 
 argument_expression_list:
     assignment_expression                                       {printf("assignment_expression to argument_expression_list.\n");}
-    | argument_expression_list ',' assignment_expression        {printf("argument_expression_list,assignment_expression to argument_expression_list.\n");}
+    | argument_expression_list COMMA assignment_expression        {printf("argument_expression_list,assignment_expression to argument_expression_list.\n");}
     ;
 
 unary_expression:
@@ -73,60 +61,60 @@ unary_expression:
     ;
 
 unary_operator:
-    '&'         {printf("& to unary_operator.\n");}
-    | '*'       {printf("& to unary_operator.\n");}
-    | '+'       {printf("& to unary_operator.\n");}
-    | '-'       {printf("& to unary_operator.\n");}
-    | '!'       {printf("& to unary_operator.\n");}
+    BITWISEAND         {printf("& to unary_operator.\n");}
+    | STAR       {printf("* to unary_operator.\n");}
+    | PLUS       {printf("+ to unary_operator.\n");}
+    | MINUS       {printf("- to unary_operator.\n");}
+    | EXCLAMATION       {printf("! to unary_operator.\n");}
     ;
     
 
 
 multiplicative_expression:
     unary_expression                                    {printf("unary_expression to multiplicative_expression.\n");}
-    | multiplicative_expression '*' unary_expression    {printf("first to second.\n");}
-    | multiplicative_expression '/' unary_expression    {printf("first to second.\n");}
-    | multiplicative_expression '%' unary_expression    {printf("first to second.\n");}
+    | multiplicative_expression STAR unary_expression    {printf("multiply expressions.\n");}
+    | multiplicative_expression DIVIDE unary_expression    {printf("divide expressions.\n");}
+    | multiplicative_expression PERCENTAGE unary_expression    {printf("modulo.\n");}
     ;
 
 additive_expression:
-    multiplicative_expression                               {printf("first to second.\n");}
-    | additive_expression '+' multiplicative_expression     {printf("first to second.\n");}
-    | additive_expression '-' multiplicative_expression     {printf("first to second.\n");}
+    multiplicative_expression                               {printf("multiplicative_expression to additive expression.\n");}
+    | additive_expression PLUS multiplicative_expression     {printf("addition of expressions.\n");}
+    | additive_expression MINUS multiplicative_expression     {printf("subtraction of expressions.\n");}
     ;
 
 relational_expression:
-    additive_expression                                     {printf("first to second.\n");}
-    | relational_expression '<' additive_expression         {printf("first to second.\n");}
-    | relational_expression '>' additive_expression         {printf("first to second.\n");}
-    | relational_expression "<=" additive_expression        {printf("first to second.\n");}
-    | relational_expression ">=" additive_expression        {printf("first to second.\n");}
+    additive_expression                                     {printf("additive_expression to relational_expression.\n");}
+    | relational_expression LESS_THAN additive_expression         {printf("less than.\n");}
+    | relational_expression GREATER_THAN additive_expression         {printf("greater than.\n");}
+    | relational_expression LTE_OP additive_expression        {printf("less than or equal to.\n");}
+    | relational_expression GTE_OP additive_expression        {printf("greater than or equal to.\n");}
     ;
 
 equality_expression:
-    relational_expression                               {printf("first to second.\n");}
-    | equality_expression "==" relational_expression     {printf("first to second.\n");}
-    | equality_expression "!=" relational_expression     {printf("first to second.\n");}
+    relational_expression                               {printf("relational_expression to equality_expression.\n");}
+    | equality_expression EQ_OP relational_expression     {printf("equal check.\n");}
+    | equality_expression NE_OP relational_expression     {printf("not equal to.\n");}
     ;
 
 logical_AND_expression:
-    equality_expression                                     {printf("first to second.\n");}
-    | logical_AND_expression "&&" equality_expression       {printf("first to second.\n");}
+    equality_expression                                     {printf("equality_expression to logical_AND_expression.\n");}
+    | logical_AND_expression AND_OP equality_expression       {printf("and operation.\n");}
     ;
 
 logical_OR_expression:
-    logical_AND_expression                                  {printf("first to second.\n");}
-    | logical_OR_expression "||" equality_expression        {printf("first to second.\n");}
+    logical_AND_expression                                  {printf("logical_AND_expression to logical_OR_expression.\n");}
+    | logical_OR_expression OR_OP equality_expression        {printf("or operation.\n");}
     ;
 
 conditional_expression:
-    logical_OR_expression                                                   {printf("first to second.\n");}
-    | logical_OR_expression '?' expression ':' conditional_expression       {printf("first to second.\n");}
+    logical_OR_expression                                                   {printf("logical_OR_expression to conditional_expression.\n");}
+    | logical_OR_expression QUESTION_MARK expression COLON conditional_expression       {printf("ternary operator.\n");}
     ;
 
 assignment_expression:
-    conditional_expression                              {printf("first to second.\n");}
-    | unary_expression '=' assignment_expression        {printf("first to second.\n");}
+    conditional_expression                              {printf("conditional_expression to assignment_expression.\n");}
+    | unary_expression EQ assignment_expression        {printf("assignment.\n");}
     ;
 
 expression_opt:
@@ -135,33 +123,33 @@ expression_opt:
     ;
 
 expression:
-    assignment_expression           {printf("first to second.\n");}
+    assignment_expression           {printf("assignment_expression to expression.\n");}
     ;
 
 declaration:
-    type_specifier init_declarator ';'      {printf("first to second.\n");}
+    type_specifier init_declarator SEMI_COLON      {printf("type_specifier to declaration.\n");}
     ;
 
 init_declarator:
-    declarator                          {printf("first to second.\n");}
-    | declarator '=' initializer        {printf("first to second.\n");}
+    declarator                          {printf("declarator to init_declarator.\n");}
+    | declarator EQ initializer        {printf("assignment.\n");}
     ;
 
 type_specifier:
-    "void"          {printf("first to second.\n");}
-    | "char"        {printf("first to second.\n");}
-    | "int"         {printf("first to second.\n");}
+    VOID          {printf("Type -> void.\n");}
+    | CHAR        {printf("Type -> char.\n");}
+    | INT         {printf("Type -> int.\n");}
     ;
 
 
 declarator:
-    pointer_opt direct_declarator       {printf("first to second.\n");}
+    pointer_opt direct_declarator       {printf("declarator.\n");}
     ;
 
 direct_declarator:
-    IDENTIFIER                                  {printf("first to second.\n");}
-    | IDENTIFIER '[' INTEGER_CONSTANT ']'       {printf("first to second.\n");}
-    | IDENTIFIER '(' parameter_list_opt ')'     {printf("first to second.\n");}
+    IDENTIFIER                                  {printf("identifier to direct_declarator.\n");}
+    | IDENTIFIER SQ_BRACE_OPEN INTEGER_CONSTANT SQ_BRACE_CLOSE       {printf("array declaration\n");}
+    | IDENTIFIER ROUND_BRACE_OPEN parameter_list_opt ROUND_BRACE_CLOSE     {printf("function declaration.\n");}
     ;
 
 pointer_opt:
@@ -170,7 +158,7 @@ pointer_opt:
     ;
 
 pointer:
-    '*'         {printf("first to second.\n");}
+    STAR         {printf("pointer.\n");}
     ;
 
 parameter_list_opt:
@@ -179,8 +167,8 @@ parameter_list_opt:
     ;
 
 parameter_list:
-    parameter_declaration                           {printf("first to second.\n");}
-    | parameter_list ',' parameter_declaration      {printf("first to second.\n");}
+    parameter_declaration                           {printf("parameter_declaration to parameter_list.\n");}
+    | parameter_list COMMA parameter_declaration      {printf("parameter list extension .\n");}
     ;
 
 identifier_opt: 
@@ -189,24 +177,24 @@ identifier_opt:
     ;
 
 parameter_declaration:
-    type_specifier pointer_opt identifier_opt       {printf("first to second.\n");}
+    type_specifier pointer_opt identifier_opt       {printf("parameter_declaration.\n");}
     ;
 
 initializer:
-    assignment_expression           {printf("first to second.\n");}
+    assignment_expression           {printf("assignment_expression initialiser.\n");}
     ;
 
 
 statement:
-    compound_statement              {printf("first to second.\n");}
-    | expression_statement          {printf("first to second.\n");}
-    | selection_statement           {printf("first to second.\n");}
-    | iteration_statement           {printf("first to second.\n");}
-    | jump_statement                {printf("first to second.\n");}
+    compound_statement              {printf("compound_statement.\n");}
+    | expression_statement          {printf("expression statement.\n");}
+    | selection_statement           {printf("selection statement.\n");}
+    | iteration_statement           {printf("iteration statement.\n");}
+    | jump_statement                {printf("jump statement.\n");}
     ;
 
 compound_statement:
-    '{' block_item_list_opt '}'         {printf("first to second.\n");}
+    CURLY_BRACE_OPEN block_item_list_opt CURLY_BRACE_CLOSE         {printf("compound statement declaration.\n");}
     ;
 
 block_item_list_opt:
@@ -215,52 +203,52 @@ block_item_list_opt:
     ;
 
 block_item_list:
-    block_item                          {printf("first to second.\n");}
-    | block_item_list block_item        {printf("first to second.\n");}
+    block_item                          {printf("block list.\n");}
+    | block_item_list block_item        {printf("block list extension.\n");}
     ;
 
 block_item:
-    declaration         {printf("first to second.\n");}
-    | statement         {printf("first to second.\n");}
+    declaration         {printf("block item declaration.\n");}
+    | statement         {printf("block item statement.\n");}
     ;
 
 expression_statement:
-    expression_opt          {printf("first to second.\n");}
+    expression_opt          {printf("expression opt statement.\n");}
     ;
 
 selection_statement:
-    "if" '(' expression ')' statement                           {printf("first to second.\n");}
-    | "if" '(' expression ')' statement "else" statement        {printf("first to second.\n");}
+    IF ROUND_BRACE_OPEN expression ROUND_BRACE_CLOSE statement                           {printf("if statement.\n");}
+    | IF ROUND_BRACE_OPEN expression ROUND_BRACE_CLOSE statement ELSE statement        {printf("if else statement.\n");}
     ;
 
 iteration_statement:
-    "for" '(' expression_opt ';' expression_opt ';' expression_opt ')' statement        {printf("first to second.\n");}
+    FOR ROUND_BRACE_OPEN expression_opt SEMI_COLON expression_opt SEMI_COLON expression_opt ROUND_BRACE_CLOSE statement        {printf("for loop.\n");}
     ;
 
 jump_statement:
-    "return" expression_opt ';'         {printf("first to second.\n");}
+    RETURN expression_opt SEMI_COLON         {printf("return statement.\n");}
     ;
 
 
 translation_unit:
-    function_definition             {printf("first to second.\n");}
-    | declaration                   {printf("first to second.\n");}
+    function_definition             {printf("function definition.\n");}
+    | declaration                   {printf("function declaration statement.\n");}
     ;
 
 function_definition:
-    type_specifier declarator '(' declaration_list_opt ')' compound_statement           {printf("first to second.\n");}
+    type_specifier declarator  compound_statement           {printf("type specifier declarator.\n");}
     ;
-
+/*
 declaration_list_opt:
     declaration_list
     | %empty
     ;
 
 declaration_list:
-    declaration                         {printf("first to second.\n");}
-    | declaration_list declaration      {printf("first to second.\n");}
+    declaration                         {printf("declaration list.\n");}
+    | declaration_list declaration      {printf("declaration list declaration.\n");}
     ;
-
+*/
 
 
 %%

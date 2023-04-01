@@ -1,30 +1,37 @@
-// Auxiliary function for printing
-void print1(){
-    printf("My name is nanoC");
-    return;
-}
-
-void print2(int a, int b)
-{
-    printf("%d < %d", a, b);
-    return;
-}
-
-/* The main function which prints and does comparisons 
-    in nanoC */
-int main(){
-    print1();
-    char a[] = 'f\\gh';
-    int x1a = +1;
-    int y0y0 = -2;
-    int *ptr;
-    ptr = &y0y0;
-    *ptr = x1a + 10;
-    if (x1a>y0y0){
-        print2(y0y0, x1a);
+int main () { 
+  int p,i,n,k;
+  char strin[] = "Hello Rohan";
+  char singlech = 'p';
+  float val = 323;
+  for (i=1;i<100;i++) {
+    if(val<500) {
+      printf ("%s",c);
     }
-    else{
-        print2(x1a, y0y0);
-    }
-    return 0;
+  }
+  // Quicksort driver
+  int arr[] = {10, 7, 8, 9, 1, 5};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    quickSort(arr, 0, n-1);
+    printf("Sorted array: \n");
+    printArray(arr, n);
+
+    //driver for nth fibonacci problem
+    int n1 = 40;
+    _initialize();
+    printf("Fibonacci number is %d ", fib(n1));
+
+
+    //driver for 0-1 knapsack problem using dynamic programming
+    int val[] = {60, 100, 120};
+    int wt[] = {10, 20, 30};
+    int  W = 50;
+    int n = sizeof(val)/sizeof(val[0]);
+    printf("%d", knapSack(W, wt, val, n));
+
+  // Program to print area of rectangle
+  int person=101,a,b;
+  printf("Enter the length and breadth of rectangle: \n");
+  scanf("%d%d",&a,&b);
+  printf("Area of rectangle is: %d",a*b);
+  return;
 }

@@ -4,7 +4,7 @@ MAIN = A4_20
 CC = gcc
 
 $(MAIN)_output.txt: a.out test.nc
-	./a.out < test.nc > $(MAIN)_output.txt
+	./a.out < test.nc > output.txt
 
 a.out: lex.yy.o $(MAIN).tab.o $(MAIN).o
 	$(CC) lex.yy.o $(MAIN).tab.o $(MAIN).o

@@ -2,13 +2,14 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
-extern int yylex (void);
-void yyerror(char *);
+    extern int yylex();
+    void yyerror(const char *);
+    extern int yylineno;
+    extern char* yytext;
 %}
 
 /* Bison declarations. */
 
-%token IDENTIFIER STRING_LITERAL INTEGER_CONSTANT CHARACTER_CONSTANT
 %define parse.error verbose
 %verbose
 %token PTR EQ
@@ -16,17 +17,25 @@ void yyerror(char *);
 %token COLON SEMI_COLON QUESTION_MARK
 %token EQ_OP NE_OP LTE_OP GTE_OP
 %token AND_OP OR_OP 
-%token LESS_THAN GREATER_THAN DOT BITWISEAND BITWISEOR STAR PLUS MINUS EXCLAMATION DIVIDE PERCENTAGE COMMA HASH
+%token LESS_THAN GREATER_THAN BITWISEAND STAR PLUS MINUS EXCLAMATION DIVIDE PERCENTAGE COMMA
 
 %token VOID CHAR INT
 %token IF ELSE FOR RETURN 
-%token INVALID_TOKEN 
 
-%nonassoc PARENTHESIS_CLOSE
+%token  IDENTIFIER
+%token  INTEGER_CONSTANT
+%token  CHARACTER_CONSTANT
+%token  STRING_LITERAL
+
+
+
+%token INVALID_TOKEN
+
+%nonassoc ROUND_BRACE_CLOSE
 %nonassoc ELSE
 
 
-%start translation_unit
+%start translation_units
 
 %% /* The grammar follows. */
 
@@ -38,15 +47,13 @@ primary_expression:
     | ROUND_BRACE_OPEN expression ROUND_BRACE_CLOSE       {printf("(expression) to primary_expression.\n");}
     ;
 
-argument_expression_list_opt:
-    argument_expression_list    
-    | %empty                     
-    ;
+
 
 postfix_expression:
     primary_expression                                          {printf("primary_expression to postfix_expression.\n");}
     | postfix_expression SQ_BRACE_OPEN expression SQ_BRACE_CLOSE                    {printf("[expression] to postfix_expression.\n");}
-    | postfix_expression ROUND_BRACE_OPEN argument_expression_list_opt ROUND_BRACE_CLOSE   {printf("(argument_expression_list_opt) to postfix_expression.\n");}
+    | postfix_expression ROUND_BRACE_OPEN argument_expression_list ROUND_BRACE_CLOSE   {printf("(argument_expression_list_opt) to postfix_expression.\n");}
+    | postfix_expression ROUND_BRACE_OPEN ROUND_BRACE_CLOSE   {printf("(argument_expression_list_opt) to postfix_expression.\n");}
     | postfix_expression PTR IDENTIFIER                        {printf("IDENTIFIER to postfix_expression.\n");}
     ;
 
@@ -117,13 +124,16 @@ assignment_expression:
     | unary_expression EQ assignment_expression        {printf("assignment.\n");}
     ;
 
-expression_opt:
-    expression      
-    | %empty
-    ;
+
 
 expression:
     assignment_expression           {printf("assignment_expression to expression.\n");}
+    ;
+
+
+expression_opt:
+    expression      
+    | 
     ;
 
 declaration:
@@ -148,22 +158,24 @@ declarator:
 
 direct_declarator:
     IDENTIFIER                                  {printf("identifier to direct_declarator.\n");}
-    | IDENTIFIER SQ_BRACE_OPEN INTEGER_CONSTANT SQ_BRACE_CLOSE       {printf("array declaration\n");}
-    | IDENTIFIER ROUND_BRACE_OPEN parameter_list_opt ROUND_BRACE_CLOSE     {printf("function declaration.\n");}
+    | direct_declarator SQ_BRACE_OPEN INTEGER_CONSTANT SQ_BRACE_CLOSE       {printf("array declaration\n");}
+    | direct_declarator ROUND_BRACE_OPEN parameter_list_opt ROUND_BRACE_CLOSE     {printf("function declaration.\n");}
     ;
 
-pointer_opt:
-    pointer
-    | %empty
-    ;
 
 pointer:
     STAR         {printf("pointer.\n");}
     ;
 
+pointer_opt:
+    pointer
+    | 
+    ;
+
+
 parameter_list_opt:
     parameter_list
-    | %empty
+    | 
     ;
 
 parameter_list:
@@ -173,7 +185,7 @@ parameter_list:
 
 identifier_opt: 
     IDENTIFIER
-    | %empty
+    | 
     ;
 
 parameter_declaration:
@@ -199,7 +211,7 @@ compound_statement:
 
 block_item_list_opt:
     block_item_list
-    | %empty
+    | 
     ;
 
 block_item_list:
@@ -213,7 +225,7 @@ block_item:
     ;
 
 expression_statement:
-    expression_opt          {printf("expression opt statement.\n");}
+    expression_opt  SEMI_COLON        {printf("expression opt statement.\n");}
     ;
 
 selection_statement:
@@ -229,6 +241,9 @@ jump_statement:
     RETURN expression_opt SEMI_COLON         {printf("return statement.\n");}
     ;
 
+translation_units:
+    translation_unit                {printf("first tr_unit -> units.\n");}
+    | translation_units translation_unit        {printf("another tr_unit read.\n");}
 
 translation_unit:
     function_definition             {printf("function definition.\n");}
@@ -241,7 +256,7 @@ function_definition:
 /*
 declaration_list_opt:
     declaration_list
-    | %empty
+    | 
     ;
 
 declaration_list:
@@ -253,7 +268,6 @@ declaration_list:
 
 %%
 
-void yyerror(char *s) {
-    printf("ERROR unable to parse : %s\n", s);
+void yyerror(const char* s) {
+    printf("ERROR [Line %d] : %s, unable to parse : %s\n", yylineno, s, yytext);
 }
-

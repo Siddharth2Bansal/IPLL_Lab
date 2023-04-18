@@ -1,89 +1,168 @@
-    /* Mapping of token and token manifest constant */
-
 %{
-        #include <stdio.h>
+	#include <stdio.h>
     #include <stdlib.h>
-   #include "A4_20.tab.h"
-   extern void yyerror(char*);
+	#include <string.h>
+	#include "A5_20_translator.h"
+	#include "A5_20.tab.h"
+	extern "C" int yylex();
+    extern YYSTYPE yylval;
+    extern int line;
+    int line = 1;   
 %}
 
+%option noyywrap
 
-%x MULTI_LINE_FLAG
-%x SINGLE_LINE_FLAG
-
-IDENTIFIER              [A-Za-z_][A-Za-z0-9_]*
-ESCAPE_SEQUENCE         "\\\'"|"\\\""|"\\?"|"\\\\"|"\\a"|"\\b"|"\\f"|"\\n"|"\\r"|"\\t"|"\\v"  
-
-DIGIT                   [0-9]
-DIGIT_SEQUENCE          [0-9]+
-NON_ZERO_DIGIT          [1-9]
-INTEGER_CONSTANT        {NON_ZERO_DIGIT}{DIGIT}*|"0"
+/* Regular Expressions*/
+DIGIT           [0-9]
+NON_ZERO        [1-9]
+LETTER          [a-zA-Z]
 
 
-C_CHAR                  [^\'\n\\']|{ESCAPE_SEQUENCE}
-C_CHAR_SEQUENCE         {C_CHAR}+
-CHARACTER_CONSTANT      \'{C_CHAR_SEQUENCE}\'
+DIGIT_SEQ       {DIGIT}{DIGIT}*
 
-S_CHAR                  [^\"\n\\]|{ESCAPE_SEQUENCE}
-S_CHAR_SEQUENCE         {S_CHAR}+
-STRING_LITERAL          \"({S_CHAR_SEQUENCE}?)\"
-WHITESPACE              [ \t\r]
+ESCAPE_SEQ      "\\b"|"\\v"|"\\\'"|"\\\""|"\\\?"|"\\\\"|"\\a"|"\\f"|"\\n"|"\\r"|"\\t"
+C_CHAR          [^\'\\\n]|{ESCAPE_SEQ}
+S_CHAR          [^\"\\\n]|{ESCAPE_SEQ}
 
-%%
-"char"                      {return CHAR;}
-"else"                      {return ELSE;}
-"for"                       {return FOR;}
-"if"                        {return IF;}
-"int"                       {return INT;}
-"return"                    {return RETURN;}
-"void"                      {return VOID;}
-{IDENTIFIER}                {return IDENTIFIER;}
-{INTEGER_CONSTANT}          {return INTEGER_CONSTANT;}
-{CHARACTER_CONSTANT}        {return CHARACTER_CONSTANT;}
-{STRING_LITERAL}            {return STRING_LITERAL;}
+CHAR_SEQ        {C_CHAR}{C_CHAR}*
+STRING_SEQ      {S_CHAR}{S_CHAR}*
 
-"="                         {return EQ;}
-":"                         {return COLON;}
-";"                         {return SEMI_COLON;}
-"?"                         {return QUESTION_MARK;}
-"->"                        {return PTR;}
-"<"                         {return LESS_THAN;}
-">"                         {return GREATER_THAN;}
-"<="                        {return LTE_OP;}
-">="                        {return GTE_OP;}
-"=="                        {return EQ_OP;}
-"&&"                        {return AND_OP;}
-"||"                        {return OR_OP;}
-"!="                        {return NE_OP;}
-"("                         {return ROUND_BRACE_OPEN;}
-")"                         {return ROUND_BRACE_CLOSE;}
-"{"                         {return CURLY_BRACE_OPEN;}
-"}"                         {return CURLY_BRACE_CLOSE;}
-"["                         {return SQ_BRACE_OPEN;}
-"]"                         {return SQ_BRACE_CLOSE;}
-"&"                         {return BITWISEAND;}
-"*"                         {return STAR;}
-"+"                         {return PLUS;}
-"-"                         {return MINUS;}
-"!"                         {return EXCLAMATION;}
-"/"                         {return DIVIDE;}
-"%"                         {return PERCENTAGE;}
-","                         {return COMMA;}
+IDENTIFIER      ({LETTER}|"_")({LETTER}|{DIGIT}|"_")*
 
-"/*"                        {BEGIN(MULTI_LINE_FLAG);}
-<MULTI_LINE_FLAG>"*/"       {BEGIN(INITIAL);}
-<MULTI_LINE_FLAG>.          { }
-<MULTI_LINE_FLAG>"\n"       { yylineno++; printf("\n-------- Parsing Line No. %d --------\n", yylineno); }
+FRAC            {DIGIT_SEQ}\.|\.{DIGIT_SEQ}|{DIGIT_SEQ}\.{DIGIT_SEQ}
+FLOAT_CONST     ({FRAC}|{DIGIT_SEQ})([Ee]([-+]{DIGIT_SEQ}|{DIGIT_SEQ}))|{FRAC}|"0"*\."0"*
 
-"//"                        {BEGIN(SINGLE_LINE_FLAG);}
-<SINGLE_LINE_FLAG>"\n"      {BEGIN(INITIAL); yylineno++;printf("\n-------- Parsing Line No. %d --------\n", yylineno); }
-<SINGLE_LINE_FLAG>.         { }
-\n                          { yylineno++; printf("\n-------- Parsing Line No. %d --------\n", yylineno); }
-{WHITESPACE}                { }
-.                           { printf("ERROR [Line %d] : Invalid Token %s\n",yylineno,yytext); return INVALID_TOKEN;}
+INT_CONST       {NON_ZERO}{DIGIT}*|"0"+
+CHAR_CONST      \'{CHAR_SEQ}\'
+
+STRING          \"{STRING_SEQ}\"|\"\"
+COMMENT_LINE    "//".*
+COMMENT_MULTI   "/*"([^*]|\*+[^/*])*\**(\*"/")? 
+
+WS              [ \t]
+NEWLINE         [\n]
 
 %%
 
-int yywrap() {
-    return 1;
-}
+{COMMENT_LINE}          { /*printf("single line comment(ignored)\n");*/ }
+{COMMENT_MULTI}         { /*printf("multi line comment(ignored)\n");*/  }
+
+"int"                   { return INT;      }
+"short"                 { return SHORT;    }
+"long"                  { return LONG;     }
+"char"                  { return CHAR;     }
+"void"                  { return VOID;     }
+"float"                 { return FLOAT;    }
+
+
+"if"                    { return IF;       }
+"else"                  { return ELSE;     }
+"do"                    { return DO;       }
+"while"                 { return WHILE;    }
+"for"                   { return FOR;      }
+
+
+"case"                  { return CASE;     }
+"goto"                  { return GOTO;     }
+
+
+"break"                 { return BREAK;    }
+"const"                 { return CONST;    }
+"union"                 { return UNION;    }
+
+"switch"                { return SWITCH;   }
+"static"                { return STATIC;   }
+"struct"                { return STRUCT;   }
+"extern"                { return EXTERN;   }
+"sizeof"                { return SIZEOF;   }
+"inline"                { return INLINE;   }
+"double"                { return DOUBLE;   }
+"return"                { return RETURN;   }
+"typedef"               { return TYPEDEF;  }
+"default"               { return DEFAULT;  }
+"volatile"              { return VOLATILE; }
+"restrict"              { return RESTRICT; }
+"continue"              { return CONTINUE; }
+
+"*="                    { return STAR_EQ;              }
+"/="                    { return DIV_EQ;               }
+"%="                    { return MOD_EQ;               }
+"+="                    { return ADD_EQ;               }
+"-="                    { return SUB_EQ;               }
+"&="                    { return BITWISE_AND_EQ;       }
+"^="                    { return BITWISE_XOR_EQ;       }
+"|="                    { return BITWISE_OR_EQ;        }
+
+"..."                   { return DOTS;                 }
+"<<="                   { return SL_EQ;                }
+">>="                   { return SR_EQ;                }
+"++"                    { return INC;                  }
+"--"                    { return DEC;                  }
+"->"                    { return IMPLIES;              }
+"<<"                    { return SHIFT_LEFT;           }
+">>"                    { return SHIFT_RIGHT;          }
+"<="                    { return LTE;                  }
+">="                    { return GTE;                  }
+"=="                    { return EQ;                   }
+"!="                    { return NEQ;                  }
+"&&"                    { return AND;                  }
+"||"                    { return OR;                   }
+
+
+";"                     { return SEMICOLON;  }
+
+"["                     { return SQUARE_BRACKET_OPEN;  }
+"]"                     { return SQUARE_BRACKET_CLOSE; }
+"("                     { return ROUND_BRACKET_OPEN;   }
+")"                     { return ROUND_BRACKET_CLOSE;  }
+"{"                     { return CURLY_BRACKET_OPEN;   }
+"}"                     { return CURLY_BRACKET_CLOSE;  }
+
+"*"                     { return MUL;        }
+"+"                     { return ADD;        }
+"-"                     { return SUB;        }
+"/"                     { return DIV;        }
+"%"                     { return MOD;        }
+
+"#"                     { return HASH;       }
+"."                     { return DOT;        }
+"&"                     { return BITWISE_AND;}
+"~"                     { return BITWISE_NOT;}
+"!"                     { return EXCLAIM;    }
+"<"                     { return BIT_SL;     }
+">"                     { return BIT_SR;     }
+","                     { return COMMA;      }
+"="                     { return ASSIGN;     }
+"?"                     { return QUESTION;   }
+"^"                     { return BITWISE_XOR;}
+"|"                     { return BITWISE_OR; }
+":"                     { return COLON;      }
+
+{INT_CONST}             { 
+	                        yylval.intval = atoi(yytext);
+							return INTEGER_CONSTANT; 
+                        }
+{CHAR_CONST}            { 
+	                        yylval.char_value = yytext;
+							return CHARACTER_CONSTANT; 
+						}
+{FLOAT_CONST}           { 
+	                        yylval.char_value = yytext;
+	                        return FLOATING_CONSTANT; 
+						}
+
+{IDENTIFIER}            { 
+	                        yylval.symp = ST->lookup(yytext);
+							return IDENTIFIER; 
+						}
+
+{STRING}                { 
+	                        yylval.char_value = yytext;
+							return STRING_LITERAL; 
+						}
+
+{WS}                    { /*White-space Rule*/ }
+
+{NEWLINE}               { /* ++line; */ }
+
+%%

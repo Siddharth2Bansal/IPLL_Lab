@@ -1,13 +1,13 @@
 # Makefile variables
 RM = rm -f
-MAIN = A4_20
-CC = gcc
+MAIN = A5_20
+CC = g++
 
 $(MAIN)_output.txt: a.out test.nc
 	./a.out < test.nc > output.txt
 
-a.out: lex.yy.o $(MAIN).tab.o $(MAIN).o
-	$(CC) lex.yy.o $(MAIN).tab.o $(MAIN).o
+a.out: lex.yy.o $(MAIN).tab.o $(MAIN)_translator.o
+	$(CC) lex.yy.o $(MAIN).tab.o $(MAIN)_translator.o
 
 $(MAIN).tab.c: $(MAIN).y
 	bison -dty $(MAIN).y 
@@ -18,8 +18,8 @@ lex.yy.c: $(MAIN).l $(MAIN).tab.h
 $(MAIN).tab.h: $(MAIN).y
 	bison -d $(MAIN).y 
 
-$(MAIN).o:
-	$(CC) -c $(MAIN).c
+$(MAIN)_translator.o:
+	$(CC) -c $(MAIN)_translator.cpp
 
 lex.yy.o: lex.yy.c
 	$(CC) -c lex.yy.c

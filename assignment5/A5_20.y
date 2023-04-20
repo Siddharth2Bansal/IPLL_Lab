@@ -299,173 +299,101 @@ multiplicative_expression: unary_expression
     }
     | multiplicative_expression MUL unary_expression           
     { 
-        // error in program, type conflict
-        if(!compareSymbolType($1->loc, $3->Array))         
-            cout<<"Type Error in Program"<< endl;    
-        else                                 
-        {
-            $$ = new Expression();    
-            $$->loc = gentemp(new SymbolType($1->loc->type->type));
-            emit("*", $$->loc->name, $1->loc->name, $3->Array->name);
-        }
+    // error in program, type conflict                                
+        $$ = new Expression();    
+        $$->loc = gentemp(new SymbolType($1->loc->type->type));
+        emit("*", $$->loc->name, $1->loc->name, $3->Array->name);
     }
     | multiplicative_expression DIV unary_expression      
-    {
-        if(!compareSymbolType($1->loc, $3->Array)){ 
-            cout << "Type Error in Program"<< endl;
-        }
-        else   
-        {
-            
-            $$ = new Expression();
-            $$->loc = gentemp(new SymbolType($1->loc->type->type));
-            emit("/", $$->loc->name, $1->loc->name, $3->Array->name);
-        }
+    {       
+        $$ = new Expression();
+        $$->loc = gentemp(new SymbolType($1->loc->type->type));
+        emit("/", $$->loc->name, $1->loc->name, $3->Array->name);
     }
     | multiplicative_expression MOD unary_expression
     {
-        if(!compareSymbolType($1->loc, $3->Array)) cout << "Type Error in Program"<< endl;        
-        else          
-        {
-            $$ = new Expression();
-            $$->loc = gentemp(new SymbolType($1->loc->type->type));
-            emit("%", $$->loc->name, $1->loc->name, $3->Array->name);    
-        }
+        $$ = new Expression();
+        $$->loc = gentemp(new SymbolType($1->loc->type->type));
+        emit("%", $$->loc->name, $1->loc->name, $3->Array->name);    
     }
     ;
 
 additive_expression: multiplicative_expression   { $$=$1; }
     | additive_expression ADD multiplicative_expression
     {
-        
-        if(!compareSymbolType($1->loc, $3->loc))
-            cout << "Type Error in Program"<< endl;
-        else        
-        {
-            $$ = new Expression();    
-            $$->loc = gentemp(new SymbolType($1->loc->type->type));
-            emit("+", $$->loc->name, $1->loc->name, $3->loc->name);
-        }
+        $$ = new Expression();    
+        $$->loc = gentemp(new SymbolType($1->loc->type->type));
+        emit("+", $$->loc->name, $1->loc->name, $3->loc->name);
     }
     | additive_expression SUB multiplicative_expression
-    {
-        
-        if(!compareSymbolType($1->loc, $3->loc))
-            cout << "Type Error in Program"<< endl;        
-        else
-        {    
-            $$ = new Expression();    
-            $$->loc = gentemp(new SymbolType($1->loc->type->type));
-            emit("-", $$->loc->name, $1->loc->name, $3->loc->name);
-        }
+    { 
+        $$ = new Expression();    
+        $$->loc = gentemp(new SymbolType($1->loc->type->type));
+        emit("-", $$->loc->name, $1->loc->name, $3->loc->name);
     }
     ;
 
 relational_expression: additive_expression   { $$=$1; }
     | relational_expression BIT_SL additive_expression
     {
-        if(!compareSymbolType($1->loc, $3->loc)) 
-        {
-            yyerror("Type Error in Program");
-        }
-        else 
-        {
-            $$ = new Expression();
-            $$->type = "bool";
-            $$->truelist = makelist(nextinstr());
-            $$->falselist = makelist(nextinstr()+1);
-            emit("<", "", $1->loc->name, $3->loc->name);
-            emit("goto", "");    
-        }
+        $$ = new Expression();
+        $$->type = "bool";
+        $$->truelist = makelist(nextinstr());
+        $$->falselist = makelist(nextinstr()+1);
+        emit("<", "", $1->loc->name, $3->loc->name);
+        emit("goto", "");    
     }
     | relational_expression BIT_SR additive_expression          
-    {
-        if(!compareSymbolType($1->loc, $3->loc)) 
-        {
-            yyerror("Type Error in Program");
-        }
-        else 
-        {    
-            $$ = new Expression();        
-            $$->type = "bool";
-            $$->truelist = makelist(nextinstr());
-            $$->falselist = makelist(nextinstr()+1);
-            emit(">", "", $1->loc->name, $3->loc->name);
-            emit("goto", "");
-        }    
+    {   
+        $$ = new Expression();        
+        $$->type = "bool";
+        $$->truelist = makelist(nextinstr());
+        $$->falselist = makelist(nextinstr()+1);
+        emit(">", "", $1->loc->name, $3->loc->name);
+        emit("goto", "");
     }
     | relational_expression LTE additive_expression            
-    {
-        if(!compareSymbolType($1->loc, $3->loc)) 
-        {
-            cout << "Type Error in Program"<< endl;
-        }
-        else 
-        {            
-            $$ = new Expression();        
-            $$->type = "bool";
-            $$->truelist = makelist(nextinstr());
-            $$->falselist = makelist(nextinstr()+1);
-            emit("<=", "", $1->loc->name, $3->loc->name);
-            emit("goto", "");
-        }        
+    {          
+        $$ = new Expression();        
+        $$->type = "bool";
+        $$->truelist = makelist(nextinstr());
+        $$->falselist = makelist(nextinstr()+1);
+        emit("<=", "", $1->loc->name, $3->loc->name);
+        emit("goto", "");
     }
     | relational_expression GTE additive_expression             
-    {
-        if(!compareSymbolType($1->loc, $3->loc))
-        {
-            cout << "Type Error in Program"<< endl;
-        }
-        else 
-        {    
-            $$ = new Expression();    
-            $$->type = "bool";
-            $$->truelist = makelist(nextinstr());
-            $$->falselist = makelist(nextinstr()+1);
-            emit(">=", "", $1->loc->name, $3->loc->name);
-            emit("goto", "");
-        }
+    {  
+        $$ = new Expression();    
+        $$->type = "bool";
+        $$->truelist = makelist(nextinstr());
+        $$->falselist = makelist(nextinstr()+1);
+        emit(">=", "", $1->loc->name, $3->loc->name);
+        emit("goto", "");
     }
     ;
 
 equality_expression: relational_expression  { $$=$1; }                        
     | equality_expression EQ relational_expression 
     {
-        //Similar to above, check compatibility, convert bool to int, make list and emit
-        if(!compareSymbolType($1->loc, $3->loc))
-        {
-            cout << "Type Error in Program"<< endl;
-        }
-        else 
-        {
-            convertBoolToInt($1);
-            convertBoolToInt($3);
-            $$ = new Expression();
-            $$->type = "bool";
-            $$->truelist = makelist(nextinstr());
-            $$->falselist = makelist(nextinstr()+1); 
-            emit("==", "", $1->loc->name, $3->loc->name);
-            emit("goto", "");                
-        }
+        convertBoolToInt($1);
+        convertBoolToInt($3);
+        $$ = new Expression();
+        $$->type = "bool";
+        $$->truelist = makelist(nextinstr());
+        $$->falselist = makelist(nextinstr()+1); 
+        emit("==", "", $1->loc->name, $3->loc->name);
+        emit("goto", "");                
     }
     | equality_expression NEQ relational_expression
-    {
-        if(!compareSymbolType($1->loc, $3->loc)) 
-        {
-            
-            cout << "Type Error in Program"<< endl;
-        }
-        else 
-        {            
-            convertBoolToInt($1);
-            convertBoolToInt($3);
-            $$ = new Expression();
-            $$->type = "bool";
-            $$->truelist = makelist(nextinstr());
-            $$->falselist = makelist(nextinstr()+1);
-            emit("!=", "", $1->loc->name, $3->loc->name);
-            emit("goto", "");
-        }
+    {           
+        convertBoolToInt($1);
+        convertBoolToInt($3);
+        $$ = new Expression();
+        $$->type = "bool";
+        $$->truelist = makelist(nextinstr());
+        $$->falselist = makelist(nextinstr()+1);
+        emit("!=", "", $1->loc->name, $3->loc->name);
+        emit("goto", "");
     }
     ;
 

@@ -4,7 +4,12 @@ int hello(int x, int * y)
 }
 
 int a[3];
+int b[10];
+
 int main() {
+    if (a==b){
+        int t=12;
+    }
 int a;
 int x = 2;
 int y = 3;
@@ -30,4 +35,3 @@ return 0;
 }
 
 int hex = 0;
-

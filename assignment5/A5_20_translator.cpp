@@ -400,30 +400,30 @@ void changeTable(SymbolTable* newtable)
     ST = newtable;
 } 
 
-bool compareSymbolType(Symbol*& s1,Symbol*& s2)                                                              
-{
-    SymbolType* type1=s1->type;                                                                        
-    SymbolType* type2=s2->type;                                                                         
-    int flag=0;
+// bool compareSymbolType(Symbol*& s1,Symbol*& s2)                                                              
+// {
+//     SymbolType* type1=s1->type;                                                                        
+//     SymbolType* type2=s2->type;                                                                         
+//     int flag=0;
     
-    if(compareSymbolType(type1,type2)) flag=1;                                                          
-    else if(s1=convertType(s1,type2->type)) flag=1;                                                     
-    else if(s2=convertType(s2,type1->type)) flag=1;                                                     
+//     if(compareSymbolType(type1,type2)) flag=1;                                                          
+//     else if(s1=convertType(s1,type2->type)) flag=1;                                                     
+//     else if(s2=convertType(s2,type1->type)) flag=1;                                                     
     
-    if(flag)return true;                                                                               
-    else return false;                                                                                  
-}
+//     if(flag)return true;                                                                               
+//     else return false;                                                                                  
+// }
 
-bool compareSymbolType(SymbolType* t1,SymbolType* t2)                                                   
-{
-    int flag=0;
-    if(t1==NULL && t2==NULL) flag=1;                                                                  
-    else if(t1==NULL || t2==NULL || t1->type!=t2->type) flag=2;                                        
+// bool compareSymbolType(SymbolType* t1,SymbolType* t2)                                                   
+// {
+//     int flag=0;
+//     if(t1==NULL && t2==NULL) flag=1;                                                                  
+//     else if(t1==NULL || t2==NULL || t1->type!=t2->type) flag=2;                                        
     
-    if(flag==1) return true;
-    else if(flag==2) return false;
-    else return compareSymbolType(t1->arrtype,t2->arrtype);                                            
-}
+//     if(flag==1) return true;
+//     else if(flag==2) return false;
+//     else return compareSymbolType(t1->arrtype,t2->arrtype);                                            
+// }
 
 
 

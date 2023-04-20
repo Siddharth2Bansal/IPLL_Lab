@@ -197,22 +197,9 @@ postfix_expression: primary_expression
         $$->Array=$1->Array;
         $$->loc=gentemp(new SymbolType("int"));
         $$->atype="arr";
-        // if already arr, multiply the size of the sub-type of Array with the expression value and add
-        if($1->atype=="arr") 
-        {            
-            Symbol* t=gentemp(new SymbolType("int"));
-            int p=computeSize($$->type);
-            string str=convertIntToString(p);
-            emit("*",t->name,$3->loc->name,str);
-            emit("+",$$->loc->name,$1->loc->name,t->name);
-        }
-        //if a 1D Array, calculate size
-        else 
-        {
-            int p=computeSize($$->type);    
-            string str=convertIntToString(p);
-            emit("*",$$->loc->name,$3->loc->name,str);
-        }
+        int p=computeSize($$->type);    
+        string str=convertIntToString(p);
+        emit("*",$$->loc->name,$3->loc->name,str);
     }
     | postfix_expression ROUND_BRACKET_OPEN argument_expression_list_opt ROUND_BRACKET_CLOSE       
     {
@@ -304,10 +291,6 @@ multiplicative_expression: unary_expression
         {
             $$->loc = gentemp($1->loc->type);    
             emit("=[]", $$->loc->name, $1->Array->name, $1->loc->name);
-        }
-        else if($1->atype=="ptr")
-        { 
-            $$->loc = $1->loc;
         }
         else
         {

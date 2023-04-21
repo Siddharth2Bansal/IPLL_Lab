@@ -12,6 +12,7 @@
     extern vector<Label> label_table;
 
     void yyerror(string s);
+    Expression* temp_rel;
 %}
 
 // datatypes
@@ -177,6 +178,10 @@ primary_expression: IDENTIFIER
     {
         // simply equal to expression
         $$=$2;
+        if($2->type == "bool")
+        {
+            temp_rel = $2;
+        }
     }
     ;
 
@@ -184,10 +189,18 @@ primary_expression: IDENTIFIER
 postfix_expression: primary_expression                      
     {
         //create new Array and store the location of primary expression in it
-        $$=new Array();    
-        $$->Array=$1->loc;    
-        $$->type=$1->loc->type;    
-        $$->loc=$$->Array;
+        $$=new Array();   
+        if($1->type != "bool")
+        {
+            $$->Array=$1->loc;    
+            $$->type=$1->loc->type;    
+            $$->loc=$$->Array;
+        } 
+        else
+        {
+            $$->atype = "bool_pass";
+        }
+
     }
     | postfix_expression SQUARE_BRACKET_OPEN expression SQUARE_BRACKET_CLOSE 
     {     
@@ -265,9 +278,20 @@ unary_expression: postfix_expression { $$=$1;}
                 $$->Array=gentemp(new SymbolType($2->Array->type->type));
                 emit("~",$$->Array->name,$2->Array->name);
                 break;
-            case '!':                
-                $$->Array=gentemp(new SymbolType($2->Array->type->type));
-                emit("!",$$->Array->name,$2->Array->name);
+            case '!': 
+                if($2->atype == "bool_pass")
+                {
+                    list<int> l = temp_rel->truelist;
+                    temp_rel->truelist = temp_rel->falselist;
+                    temp_rel->falselist = l;
+                    $$->atype = "bool_pass";
+                }               
+                else
+                {
+                    $$->Array=gentemp(new SymbolType($2->Array->type->type));
+                    emit("!",$$->Array->name,$2->Array->name);
+                }
+
                 break;
         }
     };
@@ -295,6 +319,10 @@ multiplicative_expression: unary_expression
         else if($1->atype=="ptr")
         { 
             $$->loc = $1->loc;
+        }
+        else if($1->atype == "bool_pass")
+        {
+            $$ = temp_rel;
         }
         else
         {

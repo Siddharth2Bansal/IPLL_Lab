@@ -292,6 +292,10 @@ multiplicative_expression: unary_expression
             $$->loc = gentemp($1->loc->type);    
             emit("=[]", $$->loc->name, $1->Array->name, $1->loc->name);
         }
+        else if($1->atype=="ptr")
+        { 
+            $$->loc = $1->loc;
+        }
         else
         {
             $$->loc = $1->Array;
@@ -515,27 +519,13 @@ direct_declarator: IDENTIFIER
         $$ = $1->update(new SymbolType(var_type));
         currSymbolPtr = $$;    
     }
-    | direct_declarator SQUARE_BRACKET_OPEN assignment_expression SQUARE_BRACKET_CLOSE 
+    | IDENTIFIER SQUARE_BRACKET_OPEN assignment_expression SQUARE_BRACKET_CLOSE 
     {
-        SymbolType *t = $1 -> type;
-        SymbolType *prev = NULL;
-        while(t->type == "arr") 
-        {
-            prev = t;  
-            //move recursively to get basetype  
-            t = t->arrtype;
-        }
-        if(prev==NULL) 
-        {
-            int temp = atoi($3->loc->val.c_str());
-            SymbolType* s = new SymbolType("arr", $1->type, temp);
-            $$ = $1->update(s);
-        }
-        else 
-        {
-            prev->arrtype =  new SymbolType("arr", t, atoi($3->loc->val.c_str()));
-            $$ = $1->update($1->type);
-        }
+        $$ = $1->update(new SymbolType(var_type));
+        currSymbolPtr = $$;    
+        int temp = atoi($3->loc->val.c_str());
+        SymbolType* s = new SymbolType("arr", $1->type, temp);
+        $$ = $1->update(s);
     }
     
     | direct_declarator ROUND_BRACKET_OPEN changetable parameter_list_opt ROUND_BRACKET_CLOSE 

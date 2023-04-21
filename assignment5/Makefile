@@ -2,9 +2,11 @@
 RM = rm -f
 MAIN = A5_20
 CC = g++
+TEST = test1
 
-$(MAIN)_output.txt: a.out test.nc
-	./a.out < test.nc > output.txt
+
+$(MAIN)_output.txt: a.out $(TEST).nc
+	./a.out < $(TEST).nc > output.txt
 
 a.out: lex.yy.o $(MAIN).tab.o $(MAIN)_translator.o
 	$(CC) lex.yy.o $(MAIN).tab.o $(MAIN)_translator.o

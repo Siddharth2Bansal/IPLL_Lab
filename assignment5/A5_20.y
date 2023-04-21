@@ -605,10 +605,9 @@ statement: compound_statement   { $$=$1; }
     | jump_statement   { $$=$1; }
     ;
 
-compound_statement: CURLY_BRACKET_OPEN X changetable block_item_list_opt CURLY_BRACKET_CLOSE   
+compound_statement: CURLY_BRACKET_OPEN block_item_list_opt CURLY_BRACKET_CLOSE   
     { 
-        $$=$4;
-        changeTable(ST->parent); 
+        $$=$2; 
     }
     ;
 

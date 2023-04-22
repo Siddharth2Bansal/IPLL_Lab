@@ -16,16 +16,31 @@ int y = 3;
 int z;
 z = ((x + y)*4/2)%7;
 int * ptr = &x;
+y = *ptr + 4;
+*ptr = 4;
 int arr[8];
 arr[y] = 4;
-hello(x, ptr);
+y = 4 * arr[0] / arr[2];
+x = arr[4];
+y = hello(x, ptr);
 z = arr[x] + z;
-if(x == y && z>=0 || z != 6)
+if (x==y && z>0){
+    z=x;
+}
+if(x < y && z>=0  == x >0 || z != 6)
 {
     z = x;
 }
-int a;
-a = x!=y ? x-y : y-x;
+if(x<y)
+{
+    x=2;
+}
+else
+{
+    x=4;
+}
+int a = 4;
+a = z ? x-y : y-x;
 for(a=2;a<=5;a=a+1)
 {
     x=1;

@@ -324,12 +324,12 @@ Expression* convertBoolToInt(Expression* e)
     {
         e->loc=gentemp(new SymbolType("int"));                                                        
         backpatch(e->truelist,nextinstr());
-        emit("=",e->loc->name,"true");
+        emit("=",e->loc->name,1);
         int p=nextinstr()+1;
         string str=convertIntToString(p);
         emit("goto",str);
         backpatch(e->falselist,nextinstr());
-        emit("=",e->loc->name,"false");
+        emit("=",e->loc->name,0);
     }
     return e;
 }

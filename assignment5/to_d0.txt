@@ -1,8 +1,7 @@
-move temp creation in unary * to multiplicative_expression
-no creation of temporary variable in multiplicative_expression*/%unary_expression
-make explicit true false to more implicit
+
 modify comparing bool values, the gotos are weird.
 change ternary operator to be more better in cases of convertIntToBool
 remove nextlist for statements
 break lookup into 2
 remove changetable inn if/for loop
+match grammar

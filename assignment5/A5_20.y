@@ -311,7 +311,7 @@ multiplicative_expression: unary_expression
         $$ = new Expression();
         if($1->atype=="arr")             
         {
-            $$->loc = gentemp($1->loc->type);    
+            $$->loc = gentemp($1->Array->type->arrtype);    
             emit("=[]", $$->loc->name, $1->Array->name, $1->loc->name);
         }
         else if($1->atype=="ptr")
@@ -332,22 +332,67 @@ multiplicative_expression: unary_expression
     }
     | multiplicative_expression MUL unary_expression           
     { 
-    // error in program, type conflict                                
-        $$ = new Expression();    
+    // error in program, type conflict                       
+        $$ = new Expression(); 
+        Symbol* temp_s;  
+        if($3->atype == "arr")
+        {
+            temp_s = gentemp($3->Array->type->arrtype);    
+            emit("=[]", temp_s->name, $3->Array->name, $3->loc->name);
+        } 
+        else if($3->atype == "ptr")
+        {
+            temp_s = gentemp($3->Array->type->arrtype);
+            emit("=*",temp_s->name,$3->Array->name);
+        }
+        else
+        {
+            temp_s = $3->Array;
+        }
         $$->loc = gentemp(new SymbolType($1->loc->type->type));
-        emit("*", $$->loc->name, $1->loc->name, $3->Array->name);
+        emit("*", $$->loc->name, $1->loc->name, temp_s->name);
     }
     | multiplicative_expression DIV unary_expression      
     {       
-        $$ = new Expression();
+        $$ = new Expression(); 
+        Symbol* temp_s;  
+        if($3->atype == "arr")
+        {
+            temp_s = gentemp($3->Array->type->arrtype);    
+            emit("=[]", temp_s->name, $3->Array->name, $3->loc->name);
+        } 
+        else if($3->atype == "ptr")
+        {
+            temp_s = gentemp($3->Array->type->arrtype);
+            emit("=*",temp_s->name,$3->Array->name);
+        }
+        else
+        {
+            temp_s = $3->Array;
+        }
         $$->loc = gentemp(new SymbolType($1->loc->type->type));
-        emit("/", $$->loc->name, $1->loc->name, $3->Array->name);
+        emit("/", $$->loc->name, $1->loc->name, temp_s->name);
     }
     | multiplicative_expression MOD unary_expression
     {
-        $$ = new Expression();
+        $$ = new Expression(); 
+        Symbol* temp_s;  
+        if($3->atype == "arr")
+        {
+            temp_s = gentemp($3->Array->type->arrtype);    
+            emit("=[]", temp_s->name, $3->Array->name, $3->loc->name);
+        } 
+        else if($3->atype == "ptr")
+        {
+            temp_s = gentemp($3->Array->type->arrtype);
+            emit("=*",temp_s->name,$3->Array->name);
+        }
+        else
+        {
+            temp_s = $3->Array;
+        }
         $$->loc = gentemp(new SymbolType($1->loc->type->type));
-        emit("%", $$->loc->name, $1->loc->name, $3->Array->name);    
+        emit("%", $$->loc->name, $1->loc->name, temp_s->name);  
     }
     ;
 

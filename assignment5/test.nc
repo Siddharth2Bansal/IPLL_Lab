@@ -21,7 +21,7 @@ y = 4 * *ptr;
 *ptr = 4;
 int arr[8];
 arr[y] = 4;
-y = 4 * arr[0] / arr[2];
+y = arr[0] * arr[0] / 4;
 
 x = arr[4];
 y = hello(x, ptr);

@@ -167,12 +167,7 @@ Symbol* SymbolTable::lookupIdentifier(string name)
 
     Symbol *ptr = nullptr;
     if(this->parent)ptr = this->parent->lookupIdentifier(name);
-    if(ST == this and !ptr){
-        symbol = new Symbol(name);
-        table.push_back(*symbol);                                                                  
-        return &table.back();                                                                     
-    } else if(ptr) return ptr;
-    return nullptr;
+    return ptr;
 }
 
 Symbol* SymbolTable::lookupDeclarator(string name)                                                

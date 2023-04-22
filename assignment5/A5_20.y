@@ -84,7 +84,7 @@
 
 %type <sym_type> pointer
 %type <symp> initializer
-%type <symp> direct_declarator init_declarator declarator
+%type <symp> direct_declarator init_declarator declarator declarator_helper
 %type <A> postfix_expression
     unary_expression
 //non-terminals M and N that help in backpatching and exitlists
@@ -604,6 +604,18 @@ declarator: pointer direct_declarator
     | direct_declarator {   }
     ;
 
+
+declarator_helper: IDENTIFIER ROUND_BRACKET_OPEN
+{   
+
+    Symbol* tem = ST->lookupIdentifier(id);
+    if (tem == nullptr){
+        tem = ST->lookupDeclarator(id);
+    }
+    $$ = tem->update(new SymbolType(var_type));
+    currSymbolPtr = $$; 
+}
+
 direct_declarator: IDENTIFIER
     {
         // assignment to different identifier
@@ -621,12 +633,15 @@ direct_declarator: IDENTIFIER
         $$ = tem->update(s);
     }
     
-    | direct_declarator ROUND_BRACKET_OPEN changetable parameter_list_opt ROUND_BRACKET_CLOSE 
+    | declarator_helper changetable parameter_list_opt ROUND_BRACKET_CLOSE 
     {
         ST->name = $1->name;    
         if($1->type->type !="void") 
         {
-            Symbol *s = ST->lookupDeclarator("return");
+            Symbol *s = ST->lookupIdentifier("return");
+            if (s==nullptr){
+                s = ST->lookupDeclarator("return");
+            }
             s->update($1->type);        
         }
         $1->nested=ST;       

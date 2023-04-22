@@ -8,5 +8,8 @@ int main()
     {
         z=2;
     }
+
+    int a = 4;
+    a = (x>0) ? x-y : x+y? 2:1;
     return 0;
 }

@@ -70,6 +70,7 @@
     conditional_expression
     assignment_expression
     expression_statement
+    condition
 
 // Statements
 %type <stat>  statement
@@ -515,25 +516,29 @@ logical_or_expression: logical_and_expression   { $$=$1; }
     }
     ;
 
+condition: logical_or_expression QUESTION 
+    {
+        convertIntToBool($1);
+        $$ = $1;
+    }
+
 conditional_expression: logical_or_expression {$$=$1;}
     // backpatching involved B1 || B2 N ? M expre N : M cond_expr type expression
-    | logical_or_expression N QUESTION M expression N COLON M conditional_expression 
+    | condition M expression N COLON M conditional_expression 
     {
         // Generate temporary variable and then emit accordingly
-        $$->loc = gentemp($5->loc->type);
-        $$->loc->update($5->loc->type);
-        emit("=", $$->loc->name, $9->loc->name);
+        $$->loc = gentemp($3->loc->type);
+        $$->loc->update($3->loc->type);
+        emit("=", $$->loc->name, $7->loc->name);
         list<int> l = makelist(nextinstr());
         emit("goto", "");
-        backpatch($6->nextlist, nextinstr());
-        emit("=", $$->loc->name, $5->loc->name);
+        backpatch($4->nextlist, nextinstr());
+        emit("=", $$->loc->name, $3->loc->name);
         list<int> m = makelist(nextinstr());
         l = merge(l, m);                        
-        emit("goto", "");                        
-        backpatch($2->nextlist, nextinstr());
-        convertIntToBool($1);
-        backpatch($1->truelist, $4);
-        backpatch($1->falselist, $8);
+        emit("goto", "");
+        backpatch($1->truelist, $2);
+        backpatch($1->falselist, $6);
         backpatch(l, nextinstr());
     }
     ;

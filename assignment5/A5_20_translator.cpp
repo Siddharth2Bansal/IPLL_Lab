@@ -318,20 +318,24 @@ string convertFloatToString(float x)
     return buff.str();
 }
 
-Expression* convertBoolToInt(Expression* e)                                                           
+int convertBoolToInt(Expression* e)                                                           
 {	
+    int res = 0;
 	if(e->type=="bool") 
     {
         e->loc=gentemp(new SymbolType("int"));                                                        
         backpatch(e->truelist,nextinstr());
         emit("=",e->loc->name,1);
-        int p=nextinstr()+1;
-        string str=convertIntToString(p);
-        emit("goto",str);
+        e->nextlist = makelist(nextinstr());
+        emit("goto","");
         backpatch(e->falselist,nextinstr());
         emit("=",e->loc->name,0);
+        list<int> temp = makelist(nextinstr());
+        e->nextlist = merge(e->nextlist, temp);
+        emit("goto","");
+        res = 1;
     }
-    return e;
+    return res;
 }
 
 Expression* convertIntToBool(Expression* e)                                                          

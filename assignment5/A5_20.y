@@ -451,26 +451,38 @@ relational_expression: additive_expression   { $$=$1; }
     ;
 
 equality_expression: relational_expression  { $$=$1; }                        
-    | equality_expression EQ relational_expression 
+    | equality_expression EQ M relational_expression 
     {
-        convertBoolToInt($1);
-        convertBoolToInt($3);
+        if(convertBoolToInt($1) == 1)
+        {
+            backpatch($1->nextlist, $3);
+        }
+        if(convertBoolToInt($4) == 1)
+        {
+            backpatch($4->nextlist, nextinstr());
+        }
         $$ = new Expression();
         $$->type = "bool";
         $$->truelist = makelist(nextinstr());
         $$->falselist = makelist(nextinstr()+1); 
-        emit("==", "", $1->loc->name, $3->loc->name);
+        emit("==", "", $1->loc->name, $4->loc->name);
         emit("goto", "");                
     }
-    | equality_expression NEQ relational_expression
+    | equality_expression NEQ M relational_expression
     {           
-        convertBoolToInt($1);
-        convertBoolToInt($3);
+        if(convertBoolToInt($1) == 1)
+        {
+            backpatch($1->nextlist, $3);
+        }
+        if(convertBoolToInt($4) == 1)
+        {
+            backpatch($4->nextlist, nextinstr());
+        }
         $$ = new Expression();
         $$->type = "bool";
         $$->truelist = makelist(nextinstr());
-        $$->falselist = makelist(nextinstr()+1);
-        emit("!=", "", $1->loc->name, $3->loc->name);
+        $$->falselist = makelist(nextinstr()+1); 
+        emit("!=", "", $1->loc->name, $4->loc->name);
         emit("goto", "");
     }
     ;

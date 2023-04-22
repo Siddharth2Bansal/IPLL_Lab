@@ -171,7 +171,7 @@ struct Statement {
 string convertIntToString(int);                                                              
 string convertFloatToString(float);                                                          
 Exps convertIntToBool(Exps);                                                                 
-Exps convertBoolToInt(Exps);  
+int convertBoolToInt(Exps);  
 
 //Overloaded emit functions
 void emit(string , string , string arg1="", string arg2 = "");  

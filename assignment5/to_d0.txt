@@ -1,5 +1,3 @@
-
-modify comparing bool values, the gotos are weird.
 change ternary operator to be more better in cases of convertIntToBool
 remove nextlist for statements
 break lookup into 2

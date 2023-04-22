@@ -35,7 +35,7 @@
 %verbose
 %token RESTRICT BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INLINE INT LONG RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE _BOOL _COMPLEX _IMAGINARY 
             
-%token <symp> IDENTIFIER                              
+%token  IDENTIFIER                              
 %token <char_value> STRING_LITERAL         
 
 %token SQUARE_BRACKET_OPEN SQUARE_BRACKET_CLOSE
@@ -153,7 +153,7 @@ primary_expression: IDENTIFIER
     {
         // create new expression and store pointer to ST entry in the location
         $$=new Expression();
-        $$->loc=$1;
+        $$->loc=ST->lookup(id);
     }
     // create new expression and store the value of the constant in a temporary
     | INTEGER_CONSTANT
@@ -607,16 +607,18 @@ declarator: pointer direct_declarator
 direct_declarator: IDENTIFIER
     {
         // assignment to different identifier
-        $$ = $1->update(new SymbolType(var_type));
+        Symbol* tem = ST->lookup(id);
+        $$ = tem->update(new SymbolType(var_type));
         currSymbolPtr = $$;    
     }
     | IDENTIFIER SQUARE_BRACKET_OPEN assignment_expression SQUARE_BRACKET_CLOSE 
     {
-        $$ = $1->update(new SymbolType(var_type));
+        Symbol *tem = ST->lookup(id);
+        $$ = tem->update(new SymbolType(var_type));
         currSymbolPtr = $$;    
         int temp = atoi($3->loc->val.c_str());
-        SymbolType* s = new SymbolType("arr", $1->type, temp);
-        $$ = $1->update(s);
+        SymbolType* s = new SymbolType("arr", tem->type, temp);
+        $$ = tem->update(s);
     }
     
     | direct_declarator ROUND_BRACKET_OPEN changetable parameter_list_opt ROUND_BRACKET_CLOSE 

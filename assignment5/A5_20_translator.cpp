@@ -129,7 +129,8 @@ SymbolTable* parST;
 Symbol* currSymbolPtr;                                                                                
 long long int table_count;                                                                         
 string loop_name;                                                                                  
-vector<Label>label_table; 
+vector<Label>label_table;
+string id; 
 
 // update function to Symbol
 Symbol* Symbol::update(SymbolType* t) 

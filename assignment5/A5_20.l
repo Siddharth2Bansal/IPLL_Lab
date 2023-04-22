@@ -152,8 +152,8 @@ NEWLINE         [\n]
 						}
 
 {IDENTIFIER}            { 
-	                        yylval.symp = ST->lookup(yytext);
-							return IDENTIFIER; 
+							id = yytext;
+							return IDENTIFIER;
 						}
 
 {STRING}                { 

@@ -56,7 +56,7 @@ extern bool debug_on;
 extern string loop_name;             
 // table to store the labels                                                      
 extern vector<Label>label_table;          
-
+extern string id;
 // Label symbol 
 class Label                                                                                
 {

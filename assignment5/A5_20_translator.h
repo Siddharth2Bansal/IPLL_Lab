@@ -110,7 +110,8 @@ public:
     SymbolTable* parent;                                                                   
     
     SymbolTable (string name="NULL");                                                      
-    s* lookup (string);                                                                
+    s* lookupIdentifier (string);
+    s* lookupDeclarator (string);                                                          
     void print();                                                                      
     void update();                                                                      
 };

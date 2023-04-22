@@ -152,7 +152,7 @@ SymbolTable::SymbolTable(string name)
 }
 
 // lookup function for SymbolTable
-Symbol* SymbolTable::lookup(string name)                                                
+Symbol* SymbolTable::lookupIdentifier(string name)                                                
 {
     Symbol* symbol;
     list<Symbol>::iterator it;                                                                        
@@ -166,13 +166,20 @@ Symbol* SymbolTable::lookup(string name)
     }
 
     Symbol *ptr = nullptr;
-    if(this->parent)ptr = this->parent->lookup(name);
+    if(this->parent)ptr = this->parent->lookupIdentifier(name);
     if(ST == this and !ptr){
         symbol = new Symbol(name);
         table.push_back(*symbol);                                                                  
         return &table.back();                                                                     
     } else if(ptr) return ptr;
     return nullptr;
+}
+
+Symbol* SymbolTable::lookupDeclarator(string name)                                                
+{
+    Symbol *symbol = new Symbol(name);
+    table.push_back(*symbol);                                                                  
+    return &table.back(); 
 }
 
 // update function for SymbolTable

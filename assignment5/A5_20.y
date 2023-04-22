@@ -114,7 +114,7 @@ X: %empty
         //update the current symbol pointer used for nested blocks
         string name = ST->name+"."+loop_name+"#"+to_string(table_count);
         table_count++;
-        Symbol* s = ST->lookup(name);
+        Symbol* s = ST->lookupIdentifier(name);
 
         s->nested = new SymbolTable(name);
         s->nested->parent = ST;
@@ -153,7 +153,7 @@ primary_expression: IDENTIFIER
     {
         // create new expression and store pointer to ST entry in the location
         $$=new Expression();
-        $$->loc=ST->lookup(id);
+        $$->loc=ST->lookupIdentifier(id);
     }
     // create new expression and store the value of the constant in a temporary
     | INTEGER_CONSTANT
@@ -607,13 +607,13 @@ declarator: pointer direct_declarator
 direct_declarator: IDENTIFIER
     {
         // assignment to different identifier
-        Symbol* tem = ST->lookup(id);
+        Symbol* tem = ST->lookupDeclarator(id);
         $$ = tem->update(new SymbolType(var_type));
         currSymbolPtr = $$;    
     }
     | IDENTIFIER SQUARE_BRACKET_OPEN assignment_expression SQUARE_BRACKET_CLOSE 
     {
-        Symbol *tem = ST->lookup(id);
+        Symbol *tem = ST->lookupDeclarator(id);
         $$ = tem->update(new SymbolType(var_type));
         currSymbolPtr = $$;    
         int temp = atoi($3->loc->val.c_str());
@@ -626,7 +626,7 @@ direct_declarator: IDENTIFIER
         ST->name = $1->name;    
         if($1->type->type !="void") 
         {
-            Symbol *s = ST->lookup("return");
+            Symbol *s = ST->lookupDeclarator("return");
             s->update($1->type);        
         }
         $1->nested=ST;       

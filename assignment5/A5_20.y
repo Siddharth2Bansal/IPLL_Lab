@@ -71,6 +71,9 @@
     assignment_expression
     expression_statement
     condition
+    and_helper
+    or_helper
+    if_helper
 
 // Statements
 %type <stat>  statement
@@ -101,29 +104,6 @@ M: %empty
     ;
 
 
-F: %empty 
-    {   
-        //start of the for statement 
-        loop_name = "FOR";
-    }   
-    ;
-
-
-X: %empty 
-    {
-        //update the current symbol pointer used for nested blocks
-        string name = ST->name+"."+loop_name+"#"+to_string(table_count);
-        table_count++;
-        Symbol* s = ST->lookupIdentifier(name);
-
-        s->nested = new SymbolTable(name);
-        s->nested->parent = ST;
-        s->name = name;
-        s->type = new SymbolType("block");
-
-        currSymbolPtr = s;
-    }   
-    ;
 
 N: %empty
     {
@@ -488,31 +468,42 @@ equality_expression: relational_expression  { $$=$1; }
     }
     ;
 
+and_helper: logical_and_expression AND
+    {
+        convertIntToBool($1);
+        $$ = $1;
+    }
+
+
 logical_and_expression: equality_expression  { $$=$1; }    
     // backpatching involved B1 & M B2 type expression        
-    | logical_and_expression AND M equality_expression
+    | and_helper M equality_expression
     { 
-        convertIntToBool($4);
-        convertIntToBool($1);
+        convertIntToBool($3);
         $$ = new Expression();
         $$->type = "bool";
-        backpatch($1->truelist, $3);
-        $$->truelist = $4->truelist;
-        $$->falselist = merge($1->falselist, $4->falselist);
+        backpatch($1->truelist, $2);
+        $$->truelist = $3->truelist;
+        $$->falselist = merge($1->falselist, $3->falselist);
     }
     ;
 
+or_helper: logical_or_expression OR
+    {
+        convertIntToBool($1);
+        $$ = $1;
+    }
+
 logical_or_expression: logical_and_expression   { $$=$1; }   
     // backpatching involved B1 || M B2 type expression             
-    | logical_or_expression OR M logical_and_expression
+    | or_helper M logical_and_expression
     { 
-        convertIntToBool($4);            
-        convertIntToBool($1);            
+        convertIntToBool($3);            
         $$ = new Expression();            
         $$->type = "bool";
-        backpatch($1->falselist, $3);        
-        $$->truelist = merge($1->truelist, $4->truelist);        
-        $$->falselist = $4->falselist;             
+        backpatch($1->falselist, $2);        
+        $$->truelist = merge($1->truelist, $3->truelist);        
+        $$->falselist = $3->falselist;             
     }
     ;
 
@@ -711,39 +702,40 @@ expression_statement: expression SEMICOLON {$$=$1;}
     | SEMICOLON {$$ = new Expression();}
     ;
 
-selection_statement: IF ROUND_BRACKET_OPEN expression N ROUND_BRACKET_CLOSE M statement N %prec THEN
+
+if_helper: IF ROUND_BRACKET_OPEN expression
     {
-        backpatch($4->nextlist, nextinstr());
         convertIntToBool($3);
-        $$ = new Statement();
-        backpatch($3->truelist, $6);
-        list<int> temp = merge($3->falselist, $7->nextlist);
-        $$->nextlist = merge($8->nextlist, temp);
+        $$ = $3;   
     }
-    | IF ROUND_BRACKET_OPEN expression N ROUND_BRACKET_CLOSE M statement N ELSE M statement
+
+
+selection_statement: if_helper ROUND_BRACKET_CLOSE M statement %prec THEN
     {
-        backpatch($4->nextlist, nextinstr());        
-        convertIntToBool($3);
         $$ = new Statement();
-        backpatch($3->truelist, $6);
-        backpatch($3->falselist, $10);
-        list<int> temp = merge($7->nextlist, $8->nextlist);
-        $$->nextlist = merge($11->nextlist,temp);    
+        backpatch($1->truelist, $3);
+        $$->nextlist = merge($1->falselist, $4->nextlist);
+    }
+    | if_helper ROUND_BRACKET_CLOSE M statement N ELSE M statement
+    {   
+        $$ = new Statement();
+        backpatch($1->truelist, $3);
+        backpatch($1->falselist, $7);
+        list<int> temp = merge($4->nextlist, $5->nextlist);
+        $$->nextlist = merge($8->nextlist,temp);    
     }
     ;
 
-iteration_statement:  FOR F ROUND_BRACKET_OPEN X changetable expression_statement M expression_statement M expression N ROUND_BRACKET_CLOSE M statement
+iteration_statement:  FOR ROUND_BRACKET_OPEN expression_statement M expression_statement M expression N ROUND_BRACKET_CLOSE M statement
     {
         $$ = new Statement();        
-        convertIntToBool($8);
-        backpatch($8->truelist, $13);    
-        backpatch($11->nextlist, $7);    
-        backpatch($14->nextlist, $9);    
-        string str=convertIntToString($9);
+        convertIntToBool($5);
+        backpatch($5->truelist, $10);    
+        backpatch($8->nextlist, $4);    
+        backpatch($11->nextlist, $6);    
+        string str=convertIntToString($6);
         emit("goto", str);                
-        $$->nextlist = $8->falselist;    
-        loop_name = "";
-        changeTable(ST->parent);
+        $$->nextlist = $5->falselist;
     }
     ;
 

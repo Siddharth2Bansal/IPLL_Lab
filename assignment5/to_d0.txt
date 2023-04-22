@@ -1,4 +1,1 @@
-
-break lookup into 2
-remove changetable inn if/for loop
 match grammar

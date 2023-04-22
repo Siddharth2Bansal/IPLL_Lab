@@ -1,0 +1,4 @@
+removed -> operation
+added Empty non terminal symbols in a lot of productions to adjust the control flow in relational operations
+added non terminals in some logical expressions to allow for conversion of int to bool(by comparing it with 0) in a smooth manner
+added nontermial "changetable" to handle changing symbol table when encountering different scopes

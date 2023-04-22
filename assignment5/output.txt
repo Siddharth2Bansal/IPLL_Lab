@@ -2,33 +2,154 @@
 THREE ADDRESS CODE : 
 ************************************************************************************************************************
 
-0: main: 
+0: hello: 
 1:     t0 = 0
-2:     sum = t0
+2:     return t0
 
-3: main.FOR#0: 
-4:     t0 = 1
-5:     i = t0
-6:     if i <= n goto 12
-7:     goto 16
-8:     t2 = 1
-9:     t3 = i + t2
-10:     i = t3
-11:     goto 6
-
-12: main.FOR#0.FOR#1: 
-13:     t0 = sum + i
-14:     sum = t0
-15:     goto 8
-16:     t1 = 0
-17:     return t1
+3: main: 
+4:     if a == b goto 6
+5:     goto 8
+6:     t0 = 12
+7:     t = t0
+8:     t1 = 2
+9:     x = t1
+10:     t2 = 3
+11:     y = t2
+12:     t3 = x + y
+13:     t4 = 4
+14:     t5 = t3 * t4
+15:     t6 = 2
+16:     t7 = t5 / t6
+17:     t8 = 7
+18:     t9 = t7 % t8
+19:     z = t9
+20:     t11 = &x
+21:     ptr = t11
+22:     t12 = *ptr
+23:     t13 = 4
+24:     t14 = t12 * t13
+25:     y = t14
+26:     t16 = 4
+27:     t17 = *ptr
+28:     t18 = t16 * t17
+29:     y = t18
+30:     t20 = 4
+31:     *ptr = t20
+32:     t21 = y * 4
+33:     t22 = 4
+34:     arr[t21] = t22
+35:     t24 = 0
+36:     t25 = t24 * 4
+37:     t26 = arr[t25]
+38:     t27 = 0
+39:     t28 = t27 * 4
+40:     t29 = arr[t28]
+41:     t30 = t26 * t29
+42:     t31 = 4
+43:     t32 = t30 / t31
+44:     y = t32
+45:     t34 = 4
+46:     t35 = t34 * 4
+47:     t36 = arr[t35]
+48:     x = t36
+49:     param x
+50:     param ptr
+51:     t38 = call hello, 2
+52:     y = t38
+53:     t40 = x * 4
+54:     t41 = arr[t40]
+55:     t42 = t41 + z
+56:     z = t42
+57:     t44 = x * 4
+58:     t45 = arr[t44]
+59:     t46 = z * t45
+60:     z = t46
+61:     if x == y goto 63
+62:     goto 67
+63:     t48 = 0
+64:     if z > t48 goto 66
+65:     goto 67
+66:     z = x
+67:     if x < y goto 69
+68:     goto 85
+69:     t50 = 0
+70:     if z >= t50 goto 75
+71:     goto 77
+72:     t51 = 0
+73:     if x > t51 goto 79
+74:     goto 81
+75:     t52 = 1
+76:     goto 72
+77:     t52 = 0
+78:     goto 72
+79:     t53 = 1
+80:     goto 83
+81:     t53 = 0
+82:     goto 83
+83:     if t52 == t53 goto 88
+84:     goto 85
+85:     t54 = 6
+86:     if z != t54 goto 88
+87:     goto 89
+88:     z = x
+89:     if x < y goto 91
+90:     goto 94
+91:     t56 = 2
+92:     x = t56
+93:     goto 96
+94:     t58 = 4
+95:     x = t58
+96:     t60 = 4
+97:     a = t60
+98:     if z == 0 goto 102
+99:     goto 100
+100:     t61 = x - y
+101:     goto 105
+102:     t62 = y - x
+103:     t63 = t62
+104:     goto 107
+105:     t63 = t61
+106:     goto 107
+107:     a = t63
+108:     t65 = 2
+109:     a = t65
+110:     t67 = 5
+111:     if a <= t67 goto 117
+112:     goto 120
+113:     t68 = 1
+114:     t69 = a + t68
+115:     a = t69
+116:     goto 110
+117:     t71 = 1
+118:     x = t71
+119:     goto 113
+120:     t73 = 0
+121:     return t73
+122:     t0 = 0
+123:     hex = t0
 **********************************************************************************************************************************
 ************************************************************************************************************************
 Name: Global                                                Parent Table: NULL
 ________________________________________________________________________________________________________________________
 Name                                    Type                Init Value       Size           Offset         Nested
                                                                                                     
-main                                    int                 -                   4              0              main
+hello                                   int                 -                   4              0              hello
+a                                       arr(3,int)          -                   12             4              NULL
+b                                       arr(10,int)         -                   40             16             NULL
+main                                    int                 -                   4              56             main
+hex                                     int                 0                   4              60             NULL
+t0                                      int                 0                   4              64             NULL
+------------------------------------------------------------------------------------------------------------------------
+
+************************************************************************************************************************
+Name: hello                                                 Parent Table: Global
+________________________________________________________________________________________________________________________
+Name                                    Type                Init Value       Size           Offset         Nested
+                                                                                                    
+x                                       int                 -                   4              0              NULL
+y                                       ptr(int)            -                   4              4              NULL
+return                                  int                 -                   4              8              NULL
+t0                                      int                 0                   4              12             NULL
 ------------------------------------------------------------------------------------------------------------------------
 
 ************************************************************************************************************************
@@ -37,33 +158,87 @@ ________________________________________________________________________________
 Name                                    Type                Init Value       Size           Offset         Nested
                                                                                                     
 return                                  int                 -                   4              0              NULL
-n                                       int                 -                   4              4              NULL
-i                                       int                 -                   4              8              NULL
-sum                                     int                 0                   4              12             NULL
-t0                                      int                 0                   4              16             NULL
-main.FOR#0                              block               -                   4              20             main.FOR#0
-t1                                      int                 0                   4              24             NULL
-------------------------------------------------------------------------------------------------------------------------
-
-************************************************************************************************************************
-Name: main.FOR#0                                            Parent Table: main
-________________________________________________________________________________________________________________________
-Name                                    Type                Init Value       Size           Offset         Nested
-                                                                                                    
-t0                                      int                 1                   4              0              NULL
-t1                                      int                                     4              4              NULL
-t2                                      int                 1                   4              8              NULL
-t3                                      int                                     4              12             NULL
-t4                                      int                                     4              16             NULL
-main.FOR#0.FOR#1                        block               -                   4              20             main.FOR#0.FOR#1
-------------------------------------------------------------------------------------------------------------------------
-
-************************************************************************************************************************
-Name: main.FOR#0.FOR#1                                      Parent Table: main.FOR#0
-________________________________________________________________________________________________________________________
-Name                                    Type                Init Value       Size           Offset         Nested
-                                                                                                    
-t0                                      int                                     4              0              NULL
-t1                                      int                                     4              4              NULL
+t                                       int                 12                  4              4              NULL
+t0                                      int                 12                  4              8              NULL
+a                                       int                 -                   4              12             NULL
+x                                       int                 2                   4              16             NULL
+t1                                      int                 2                   4              20             NULL
+y                                       int                 3                   4              24             NULL
+t2                                      int                 3                   4              28             NULL
+z                                       int                 -                   4              32             NULL
+t3                                      int                                     4              36             NULL
+t4                                      int                 4                   4              40             NULL
+t5                                      int                                     4              44             NULL
+t6                                      int                 2                   4              48             NULL
+t7                                      int                                     4              52             NULL
+t8                                      int                 7                   4              56             NULL
+t9                                      int                                     4              60             NULL
+t10                                     int                                     4              64             NULL
+ptr                                     ptr(int)            -                   4              68             NULL
+t11                                     ptr(int)                                4              72             NULL
+t12                                     int                                     4              76             NULL
+t13                                     int                 4                   4              80             NULL
+t14                                     int                                     4              84             NULL
+t15                                     int                                     4              88             NULL
+t16                                     int                 4                   4              92             NULL
+t17                                     int                                     4              96             NULL
+t18                                     int                                     4              100            NULL
+t19                                     int                                     4              104            NULL
+t20                                     int                 4                   4              108            NULL
+arr                                     arr(8,int)          -                   32             112            NULL
+t21                                     int                                     4              144            NULL
+t22                                     int                 4                   4              148            NULL
+t23                                     int                                     4              152            NULL
+t24                                     int                 0                   4              156            NULL
+t25                                     int                                     4              160            NULL
+t26                                     int                                     4              164            NULL
+t27                                     int                 0                   4              168            NULL
+t28                                     int                                     4              172            NULL
+t29                                     int                                     4              176            NULL
+t30                                     int                                     4              180            NULL
+t31                                     int                 4                   4              184            NULL
+t32                                     int                                     4              188            NULL
+t33                                     int                                     4              192            NULL
+t34                                     int                 4                   4              196            NULL
+t35                                     int                                     4              200            NULL
+t36                                     int                                     4              204            NULL
+t37                                     int                                     4              208            NULL
+t38                                     int                                     4              212            NULL
+t39                                     int                                     4              216            NULL
+t40                                     int                                     4              220            NULL
+t41                                     int                                     4              224            NULL
+t42                                     int                                     4              228            NULL
+t43                                     int                                     4              232            NULL
+t44                                     int                                     4              236            NULL
+t45                                     int                                     4              240            NULL
+t46                                     int                                     4              244            NULL
+t47                                     int                                     4              248            NULL
+t48                                     int                 0                   4              252            NULL
+t49                                     int                                     4              256            NULL
+t50                                     int                 0                   4              260            NULL
+t51                                     int                 0                   4              264            NULL
+t52                                     int                                     4              268            NULL
+t53                                     int                                     4              272            NULL
+t54                                     int                 6                   4              276            NULL
+t55                                     int                                     4              280            NULL
+t56                                     int                 2                   4              284            NULL
+t57                                     int                                     4              288            NULL
+t58                                     int                 4                   4              292            NULL
+t59                                     int                                     4              296            NULL
+a                                       int                 4                   4              300            NULL
+t60                                     int                 4                   4              304            NULL
+t61                                     int                                     4              308            NULL
+t62                                     int                                     4              312            NULL
+t63                                     int                                     4              316            NULL
+t64                                     int                                     4              320            NULL
+t65                                     int                 2                   4              324            NULL
+t66                                     int                                     4              328            NULL
+t67                                     int                 5                   4              332            NULL
+t68                                     int                 1                   4              336            NULL
+t69                                     int                                     4              340            NULL
+t70                                     int                                     4              344            NULL
+t71                                     int                 1                   4              348            NULL
+t72                                     int                                     4              352            NULL
+t73                                     int                 0                   4              356            NULL
 ------------------------------------------------------------------------------------------------------------------------
 

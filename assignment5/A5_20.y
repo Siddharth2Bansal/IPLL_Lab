@@ -562,10 +562,7 @@ expression: assignment_expression {  $$=$1;  }
     ;
 
 
-declaration: declaration_specifiers init_declarator SEMICOLON {    }
-    ;
-
-declaration_specifiers: type_specifier {    }
+declaration: type_specifier init_declarator SEMICOLON {    }
     ;
 
 
@@ -614,13 +611,12 @@ direct_declarator: IDENTIFIER
         $$ = tem->update(new SymbolType(var_type));
         currSymbolPtr = $$;    
     }
-    | IDENTIFIER SQUARE_BRACKET_OPEN assignment_expression SQUARE_BRACKET_CLOSE 
+    | IDENTIFIER SQUARE_BRACKET_OPEN INTEGER_CONSTANT SQUARE_BRACKET_CLOSE 
     {
         Symbol *tem = ST->lookupDeclarator(id);
         $$ = tem->update(new SymbolType(var_type));
         currSymbolPtr = $$;    
-        int temp = atoi($3->loc->val.c_str());
-        SymbolType* s = new SymbolType("arr", tem->type, temp);
+        SymbolType* s = new SymbolType("arr", tem->type, $3);
         $$ = tem->update(s);
     }
     
@@ -656,8 +652,8 @@ parameter_list: parameter_declaration   {  }
     | parameter_list COMMA parameter_declaration    {  }
     ;
 
-parameter_declaration: declaration_specifiers declarator   {  }
-    | declaration_specifiers    {  }
+parameter_declaration: type_specifier declarator   {  }
+    | type_specifier    {  }
     ;
 
 
@@ -761,7 +757,7 @@ external_declaration: function_definition {  }
     | declaration   {  }
     ;
                           
-function_definition:declaration_specifiers declarator declaration_list_opt changetable CURLY_BRACKET_OPEN block_item_list_opt CURLY_BRACKET_CLOSE  
+function_definition:type_specifier declarator changetable CURLY_BRACKET_OPEN block_item_list_opt CURLY_BRACKET_CLOSE  
     {
         int next_instr=0;         
         ST->parent=globalST;
@@ -769,14 +765,6 @@ function_definition:declaration_specifiers declarator declaration_list_opt chang
         label_table.clear();
         changeTable(globalST);
     }
-    ;
-
-declaration_list: declaration   {  }
-    | declaration_list declaration    {  }
-    ;                                                                                
-
-declaration_list_opt: %empty {  }
-    | declaration_list   {  }
     ;
 
 %%

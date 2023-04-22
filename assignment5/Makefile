@@ -2,7 +2,7 @@
 RM = rm -f
 MAIN = A5_20
 CC = g++
-TEST = test1
+TEST = test
 
 
 $(MAIN)_output.txt: a.out $(TEST).nc

@@ -262,9 +262,7 @@ unary_expression: postfix_expression { $$=$1;}
             // value, generate a temporary of the corresponding type
             case '*':
                 $$->atype="ptr";
-                $$->loc=gentemp($2->Array->type->arrtype);
                 $$->Array=$2->Array;
-                emit("=*",$$->loc->name,$2->Array->name);
                 break;
             // Similar case with + - ~ !
             case '+':  
@@ -318,7 +316,10 @@ multiplicative_expression: unary_expression
         }
         else if($1->atype=="ptr")
         { 
-            $$->loc = $1->loc;
+
+            Symbol* temp_s=gentemp($1->Array->type->arrtype);
+            emit("=*",temp_s->name,$1->Array->name);
+            $$->loc = temp_s;
         }
         else if($1->atype == "bool_pass")
         {

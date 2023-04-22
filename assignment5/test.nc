@@ -16,14 +16,17 @@ int y = 3;
 int z;
 z = ((x + y)*4/2)%7;
 int * ptr = &x;
-y = *ptr + 4;
+y = *ptr * 4;
+y = 4 * *ptr;
 *ptr = 4;
 int arr[8];
 arr[y] = 4;
 y = 4 * arr[0] / arr[2];
+
 x = arr[4];
 y = hello(x, ptr);
 z = arr[x] + z;
+z = z * arr[x];
 if (x==y && z>0){
     z=x;
 }

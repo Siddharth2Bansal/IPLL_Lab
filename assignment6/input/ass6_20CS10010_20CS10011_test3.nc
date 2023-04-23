@@ -12,9 +12,9 @@ int main()
 
     spf[0]=1;
     spf[1] = 1;
-	for (i = 2; i <= n; i++)spf[i] = i;
+	for (i = 2; i <= n; i=i+1)spf[i] = i;
 	for (i = 4; i <= n; i =i+2)spf[i] = 2;
-	for (i = 3; i * i <= n; i++)
+	for (i = 3; i * i <= n; i=i+1)
 		if (spf[i] == i)
 			for (j = i * i; j <= n; j =j+i)
                 if (spf[j] == j)
@@ -23,7 +23,7 @@ int main()
     printStr("Prime numbers till ");
     printInt(n);
     printStr(" are : \n");
-    for(i=2;i<=n;i++){
+    for(i=2;i<=n;i=i+1){
         if(spf[i]==i){
             printInt(i);
             printStr(" ");

@@ -42,15 +42,10 @@
 	primary_expression 
 	postfix_expression 
 	unary_expression 
-	cast_expression 
 	multiplicative_expression
 	additive_expression 
-	shift_expression 
 	relational_expression 
 	equality_expression 
-	AND_expression
-	exclusive_OR_expression 
-	inclusive_OR_expression 
 	logical_AND_expression 
 	logical_OR_expression
 	conditional_expression 
@@ -63,8 +58,6 @@
 	direct_declarator 
 	initializer 
 	declaration 
-	init_declarator_list
-	init_declarator_list_opt 
 	init_declarator
 
 %type <_nextlist>
@@ -155,26 +148,6 @@ primary_expression: IDENTIFIER {
 													$$.arr = NULL;
 													globalQuadArray.emit(Q_ASSIGN, $1, $$.symTPtr->name);
 												} |
-								FLOATING_CONSTANT {
-													// Declare and initialize the value of the temporary variable with the _float_value
-													$$.symTPtr  = currentSymbolTable->gentemp(new symbolType(tp_double));
-													$$.type = $$.symTPtr->type;
-													$$.symTPtr->_init_val._DOUBLE_INITVAL = $1;
-													$$.symTPtr->isInitialized = true;
-													$$.arr = NULL;
-													globalQuadArray.emit(Q_ASSIGN, $1, $$.symTPtr->name);
-												  } |
-								CHAR_CONST {
-												// Declare and initialize the value of the temporary variable with the character
-												$$.symTPtr  = currentSymbolTable->gentemp(new symbolType(tp_char));
-												$$.type = $$.symTPtr->type;
-												
-												$$.symTPtr->_init_val._CHAR_INITVAL = $1;
-												$$.symTPtr->isInitialized = true;
-												
-												$$.arr = NULL;
-												globalQuadArray.emit(Q_ASSIGN, $1, $$.symTPtr->name);
-											} |
 								STRING_LITERAL {
 
 													_string_labels.push_back(*$1);
@@ -265,59 +238,7 @@ postfix_expression :    primary_expression {
 
 																							$$.arr = NULL;
 																							$$.type = $$.symTPtr->type;
-																						 } |
-								postfix_expression '.' IDENTIFIER {/*Struct Logic to be Skipped*/}|
-								postfix_expression ARROW IDENTIFIER {
-																			/*----*/
-																	  } |
-								postfix_expression INCREMENT {
-																$$.symTPtr = currentSymbolTable->gentemp(CopyType($1.type));
-																if($1.arr != NULL)
-																{
-																	// Post increment of an array element
-																	symbol * temp_elem = currentSymbolTable->gentemp(CopyType($1.type));
-																	globalQuadArray.emit(Q_RINDEX,$1.arr->name,$1.symTPtr->name,$$.symTPtr->name);
-																	
-																	globalQuadArray.emit(Q_RINDEX,$1.arr->name,$1.symTPtr->name,temp_elem->name);
-																	
-																	globalQuadArray.emit(Q_PLUS,temp_elem->name,"1",temp_elem->name);
-																	globalQuadArray.emit(Q_LINDEX,$1.symTPtr->name,temp_elem->name,$1.arr->name);
-																	$$.arr = NULL;
-																}
-																else
-																{
-																	//post increment of an simple element
-																	
-																	globalQuadArray.emit(Q_ASSIGN,$1.symTPtr->name,$$.symTPtr->name);
-																	
-																	globalQuadArray.emit(Q_PLUS,$1.symTPtr->name,"1",$1.symTPtr->name);
-																}
-																$$.type = $$.symTPtr->type;
-															 } |
-								postfix_expression DECREMENT {
-																$$.symTPtr = currentSymbolTable->gentemp(CopyType($1.type));
-																if($1.arr != NULL)
-																{
-																	// Post decrement of an array element
-																	
-																	symbol * temp_elem = currentSymbolTable->gentemp(CopyType($1.type));
-																	globalQuadArray.emit(Q_RINDEX,$1.arr->name,$1.symTPtr->name,$$.symTPtr->name);
-																	
-																	globalQuadArray.emit(Q_RINDEX,$1.arr->name,$1.symTPtr->name,temp_elem->name);
-																	globalQuadArray.emit(Q_MINUS,temp_elem->name,"1",temp_elem->name);
-																	
-																	globalQuadArray.emit(Q_LINDEX,$1.symTPtr->name,temp_elem->name,$1.arr->name);
-																	$$.arr = NULL;
-																}
-																else
-																{
-																	//post decrement of an simple element
-																	globalQuadArray.emit(Q_ASSIGN,$1.symTPtr->name,$$.symTPtr->name);
-																	
-																	globalQuadArray.emit(Q_MINUS,$1.symTPtr->name,"1",$1.symTPtr->name);
-																}
-																$$.type = $$.symTPtr->type;
-															  };
+																						 };
 
 argument_expression_list:       assignment_expression {
 														$$.args = new vector<expression*>;
@@ -343,55 +264,7 @@ argument_expression_list_opt:   argument_expression_list {
 unary_expression:               postfix_expression {
 														$$ = $1;
 												   }|
-								INCREMENT unary_expression {
-																$$.symTPtr = currentSymbolTable->gentemp($2.type);
-																if($2.arr != NULL)
-																{
-																	// pre increment of an Array element
-																	symbol * temp_elem = currentSymbolTable->gentemp(CopyType($2.type));
-																	globalQuadArray.emit(Q_RINDEX,$2.arr->name,$2.symTPtr->name,temp_elem->name);
-																	
-																	globalQuadArray.emit(Q_PLUS,temp_elem->name,"1",temp_elem->name);
-																	globalQuadArray.emit(Q_LINDEX,$2.symTPtr->name,temp_elem->name,$2.arr->name);
-																	globalQuadArray.emit(Q_RINDEX,$2.arr->name,$2.symTPtr->name,$$.symTPtr->name);
-																	$$.arr = NULL;
-																}
-																else
-																{
-																	// pre increment
-																	globalQuadArray.emit(Q_PLUS,$2.symTPtr->name,"1",$2.symTPtr->name);
-																	
-																	globalQuadArray.emit(Q_ASSIGN,$2.symTPtr->name,$$.symTPtr->name);
-																	
-																}
-																$$.type = $$.symTPtr->type;
-															}|
-								DECREMENT unary_expression {
-																$$.symTPtr = currentSymbolTable->gentemp(CopyType($2.type));
-																if($2.arr != NULL)
-																{
-																	//pre decrement of  Array Element
-																	
-																	symbol * temp_elem = currentSymbolTable->gentemp(CopyType($2.type));
-																	globalQuadArray.emit(Q_RINDEX,$2.arr->name,$2.symTPtr->name,temp_elem->name);
-																	globalQuadArray.emit(Q_MINUS,temp_elem->name,"1",temp_elem->name);
-																	
-																	globalQuadArray.emit(Q_LINDEX,$2.symTPtr->name,temp_elem->name,$2.arr->name);
-																	globalQuadArray.emit(Q_RINDEX,$2.arr->name,$2.symTPtr->name,$$.symTPtr->name);
-																	
-																	$$.arr = NULL;
-																}
-																else
-																{
-																	// pre decrement
-																	globalQuadArray.emit(Q_MINUS,$2.symTPtr->name,"1",$2.symTPtr->name);
-																	
-																	globalQuadArray.emit(Q_ASSIGN,$2.symTPtr->name,$$.symTPtr->name);
-																}
-																$$.type = $$.symTPtr->type;
-																
-															}|
-								unary_operator cast_expression
+								unary_operator unary_expression
 																{
 																	symbolType * temp_type;
 																	switch($1)
@@ -425,13 +298,6 @@ unary_expression:               postfix_expression {
 																			
 																			globalQuadArray.emit(Q_UNARY_MINUS,$2.symTPtr->name,$$.symTPtr->name);
 																			break;
-																		case '~':
-																			/*Bitwise Not to be implemented Later on*/
-																			$$.symTPtr = currentSymbolTable->gentemp(CopyType($2.type));
-																			$$.type = $$.symTPtr->type;
-																			
-																			globalQuadArray.emit(Q_NOT,$2.symTPtr->name,$$.symTPtr->name);
-																			break;
 																		case '!':
 																			$$.symTPtr = currentSymbolTable->gentemp(CopyType($2.type));
 																			$$.type = $$.symTPtr->type;
@@ -456,57 +322,28 @@ unary_operator  :               '&' {
 								'-' {
 										$$ = '-';
 									}|
-								'~' {
-										$$ = '~';
-									}|
 								'!' {
 										$$ = '!';
 									};
 
-cast_expression :               unary_expression {
-													if($1.arr != NULL && $1.arr->type != NULL&& $1.poss_array==NULL)
-													{
-														//Right Indexing of an array element as unary expression is converted into cast expression
-														$$.symTPtr = currentSymbolTable->gentemp(new symbolType($1.type->type));
-														
-														globalQuadArray.emit(Q_RINDEX,$1.arr->name,$1.symTPtr->name,$$.symTPtr->name);
-														$$.arr = NULL;
-														
-														$$.type = $$.symTPtr->type;
-														//$$.poss_array=$1.arr;
-														//printf("name --> %s\n",$$.symTPtr->name.c_str());
-													}
-													else if($1.isPointer == true)
-													{
-														//RDereferencing as its a pointer
-														$$.symTPtr = currentSymbolTable->gentemp(CopyType($1.type));
-														
-														$$.isPointer = false;
-														
-														globalQuadArray.emit(Q_RDEREF,$1.symTPtr->name,$$.symTPtr->name);
-													}
-													else
-														$$ = $1;
-												};
-
-multiplicative_expression:      cast_expression {
+multiplicative_expression:      unary_expression {
 													$$ = $1;
 												}|
-								multiplicative_expression '*' cast_expression {
+								multiplicative_expression '*' unary_expression {
 																					typecheck(&$1,&$3);
 																					$$.symTPtr = currentSymbolTable->gentemp($1.type);
 																					$$.type = $$.symTPtr->type;
 																					
 																					globalQuadArray.emit(Q_MULT,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
 																			  }|
-								multiplicative_expression '/' cast_expression {
+								multiplicative_expression '/' unary_expression {
 																					typecheck(&$1,&$3);
 																					$$.symTPtr = currentSymbolTable->gentemp($1.type);
 																					$$.type = $$.symTPtr->type;
 																					
 																					globalQuadArray.emit(Q_DIVIDE,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
 																			  }|
-								multiplicative_expression '%' cast_expression{
+								multiplicative_expression '%' unary_expression{
 																					typecheck(&$1,&$3);
 																					
 																					$$.symTPtr = currentSymbolTable->gentemp($1.type);
@@ -535,27 +372,11 @@ additive_expression :           multiplicative_expression {
 																						globalQuadArray.emit(Q_MINUS,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
 																				  };
 
-shift_expression:               additive_expression {
-														$$ = $1;
-													}|
-								shift_expression LEFT_SHIFT additive_expression {
-																					$$.symTPtr = currentSymbolTable->gentemp($1.type);
-																					$$.type = $$.symTPtr->type;
-																					
-																					globalQuadArray.emit(Q_LEFT_OP,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
-																				}|
-								shift_expression RIGHT_SHIFT additive_expression{
-																					$$.symTPtr = currentSymbolTable->gentemp($1.type);
-																					
-																					$$.type = $$.symTPtr->type;
-																					
-																					globalQuadArray.emit(Q_RIGHT_OP,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
-																				};
 
-relational_expression:          shift_expression {
+relational_expression:          additive_expression {
 														$$ = $1;
 												 }|
-								relational_expression '<' shift_expression {
+								relational_expression '<' additive_expression {
 																				typecheck(&$1,&$3);
 																				$$.type = new symbolType(tp_bool);
 																				$$.truelist = makelist(nextInstruction);
@@ -563,7 +384,7 @@ relational_expression:          shift_expression {
 																				globalQuadArray.emit(Q_IF_LESS,$1.symTPtr->name,$3.symTPtr->name,"-1");
 																				globalQuadArray.emit(Q_GOTO,"-1");
 																		   }|
-								relational_expression '>' shift_expression {
+								relational_expression '>' additive_expression {
 																				typecheck(&$1,&$3);
 																				$$.type = new symbolType(tp_bool);
 																				$$.truelist = makelist(nextInstruction);
@@ -571,7 +392,7 @@ relational_expression:          shift_expression {
 																				globalQuadArray.emit(Q_IF_GREATER,$1.symTPtr->name,$3.symTPtr->name,"-1");
 																				globalQuadArray.emit(Q_GOTO,"-1");
 																		   }|
-								relational_expression LESS_THAN_EQUAL shift_expression {
+								relational_expression LESS_THAN_EQUAL additive_expression {
 																						typecheck(&$1,&$3);
 																						$$.type = new symbolType(tp_bool);
 																						
@@ -581,7 +402,7 @@ relational_expression:          shift_expression {
 																						globalQuadArray.emit(Q_IF_LESS_OR_EQUAL,$1.symTPtr->name,$3.symTPtr->name,"-1");
 																						globalQuadArray.emit(Q_GOTO,"-1");
 																					}|
-								relational_expression GREATER_THAN_EQUAL shift_expression {
+								relational_expression GREATER_THAN_EQUAL additive_expression {
 																							typecheck(&$1,&$3);
 													
 																							$$.type = new symbolType(tp_bool);
@@ -616,40 +437,11 @@ equality_expression:            relational_expression {
 																							globalQuadArray.emit(Q_GOTO,"-1");
 																					 };
 
-AND_expression :                equality_expression {
-														$$ = $1;
-													}|
-								AND_expression '&' equality_expression {
-																			$$.symTPtr = currentSymbolTable->gentemp($1.type);
-																			$$.type = $$.symTPtr->type;
-																		
-																			globalQuadArray.emit(Q_LOG_AND,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
-																			
-																		};
 
-exclusive_OR_expression:        AND_expression {
-													$$ = $1;
-											   }|
-								exclusive_OR_expression '^' AND_expression {
-																				$$.symTPtr = currentSymbolTable->gentemp($1.type);
-																				$$.type = $$.symTPtr->type;
-																				globalQuadArray.emit(Q_XOR,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
-																		   };
-
-inclusive_OR_expression:        exclusive_OR_expression {
+logical_AND_expression:         equality_expression {
 															$$ = $1;
 														}|
-								inclusive_OR_expression '|' exclusive_OR_expression {
-																						$$.symTPtr = currentSymbolTable->gentemp($1.type);
-																						$$.type = $$.symTPtr->type;
-																						
-																						globalQuadArray.emit(Q_LOG_OR,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
-																					};
-
-logical_AND_expression:         inclusive_OR_expression {
-															$$ = $1;
-														}|
-								logical_AND_expression AND M inclusive_OR_expression {
+								logical_AND_expression AND M equality_expression {
 																						if($1.type->type != tp_bool)
 																							CONV2BOOL(&$1);
 																						if($4.type->type != tp_bool)
@@ -698,22 +490,11 @@ conditional_expression:         logical_OR_expression {
 																											backpatch(TEMP_LIST,nextInstruction);
 																										};
 
-assignment_operator:            '='                                                     |
-								MULTIPLY_EQUAL                                         |
-								DIVIDE_EQUAL                                           |
-								MOD_EQUAL                                           |
-								PLUS_EQUAL                                              |
-								MINUS_EQUAL                                         |
-								LEFT_SHIFT_EQUAL                                       |
-								RIGHT_SHIFT_EQUAL                                      |
-								AND_EQUAL                                              |
-								XOR_EQUAL                                              |
-								OR_EQUAL                                               ;
 
 assignment_expression:          conditional_expression {
 															$$ = $1;
 														}|
-								unary_expression assignment_operator assignment_expression {
+								unary_expression '=' assignment_expression {
 																								//LDereferencing
 																								//printf("hoboo --> %s\n",$1.symTPtr->name.c_str());
 																								if($1.isPointer)
@@ -740,14 +521,12 @@ assignment_expression:          conditional_expression {
 
 expression :                    assignment_expression {
 															$$ = $1;
-													  }|
-								expression ',' assignment_expression {
-																		$$ = $3;
-																	 };
+													  }
+								;
 
 /*Declarations*/
 
-declaration:                    type_specifier init_declarator_list_opt ';' {
+declaration:                    type_specifier init_declarator';' {
 																						if($2.symTPtr != NULL && $2.type != NULL && $2.type->type == tp_func)
 																						{
 																							/*Delete currentSymbolTable*/
@@ -756,24 +535,6 @@ declaration:                    type_specifier init_declarator_list_opt ';' {
 																						}
 																					};
 
-init_declarator_list_opt:       init_declarator_list {
-														if($1.type != NULL && $1.type->type == tp_func)
-														{
-															$$ = $1;
-															
-														}
-													 }|
-								/*epsilon*/ {
-												$$.symTPtr = NULL;
-											};
-
-
-init_declarator_list:           init_declarator {
-													/*Expecting only function declaration*/
-													$$ = $1;
-													
-												}|
-								init_declarator_list ',' init_declarator                ;
 
 init_declarator:                declarator {
 												/*Nothing to be done here*/
@@ -939,9 +700,6 @@ direct_declarator:              IDENTIFIER {
 																												$$ = $1;
 																												$$.symTPtr->type = $$.type;
 																											}|
-								direct_declarator '[' STATIC type_qualifier_list_opt assignment_expression ']' {}|
-								direct_declarator '[' type_qualifier_list STATIC assignment_expression ']' {}|
-								direct_declarator '[' type_qualifier_list_opt '*' ']' {/*Not sure but mostly we don't have to implement this*/}|
 								direct_declarator '(' parameter_type_list ')' {
 																				   int params_no=currentSymbolTable->emptyArgList;
 																				   //printf("no.ofparameters-->%d\n",params_no);

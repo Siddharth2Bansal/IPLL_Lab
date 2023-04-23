@@ -31,7 +31,7 @@ int merge(int *a, int left, int mid, int right)
     
         temp[k] = a[j];
     
-    for (i = left; i <= right; i++)
+    for (i = left; i <= right; i=i+1)
     {
         a[i] = temp[i - left];
     }
@@ -65,10 +65,10 @@ int main()
     printStr("Enter size of array (n<=100) : \n");
     n = readInt(&err);
     printStr("Enter the numbers (separated by newlines): \n");
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i=i+1)
         a[i] = readInt(&err);
     printStr("The array elements before sorting are:\n");
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i=i+1)
     {
         printInt(a[i]);
         printStr(" ");
@@ -82,7 +82,7 @@ int main()
     printStr("\n");
     
     printStr("The array elements after sorting are:\n");
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i=i+1)
     {
         printInt(a[i]);
         printStr(" ");

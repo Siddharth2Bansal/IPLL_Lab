@@ -12,7 +12,8 @@ int fact(int a)
 
 int main()
 {
-    int n, ans;
+    int n;
+    int ans;
     int err = 1;
     printStr("### Factorial calculation in O(N!) ###\n\n");
     printStr("Enter n (<=9): ");

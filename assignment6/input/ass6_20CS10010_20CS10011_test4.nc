@@ -22,16 +22,16 @@ int lis_length(int *a,int n) {
 	int i;
     int j;
     int d[101];
-    for(i=1;i<=100;i++)
+    for(i=1;i<=100;i=i+1)
         d[i]=INF;
 	d[0] = -INF;
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i=i+1) {
 		j = upper_bound(d, n+1, a[i]);
 		if (d[j-1] < a[i] && a[i] < d[j])d[j] = a[i];
 	}
 
 	int ans = 0;
-	for (i = 0; i <= n; i++) {
+	for (i = 0; i <= n; i=i+1) {
 		if (d[i] < INF)
 		    ans = i;
 	}
@@ -49,11 +49,11 @@ int main() {
     printStr("Enter size of array (n<=100) : \n");
     n = readInt(&eP);
     printStr("Enter the elements of the array (separated by newlines): \n");
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i=i+1)
         a[i] = readInt(&eP);
         
     printStr("The array elements are:\n");
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i=i+1)
     {
         printInt(a[i]);
         printStr(" ");

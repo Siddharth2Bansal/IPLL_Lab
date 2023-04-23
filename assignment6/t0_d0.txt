@@ -1,8 +1,9 @@
 l/y file me rteurn token thik karna hai
-
+test.nc not working
 
 extra:
     identifier_list
     parameter_type_list
     type_qualifier_list
     type type_qualifier_list_opt in direct declarator
+    direct declarator (identifier_list_opts)

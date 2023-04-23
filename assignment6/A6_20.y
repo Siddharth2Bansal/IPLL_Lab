@@ -56,7 +56,6 @@
 	conditional_expression 
 	assignment_expression_opt 
 	assignment_expression 
-	constant_expression 
 	expression
 	expression_statement 
 	expression_opt 
@@ -71,7 +70,6 @@
 %type <_nextlist>
 	block_item_list 
 	block_item statement 
-	labeled_statement 
 	compound_statement 
 	selection_statement
 	iteration_statement 
@@ -80,7 +78,7 @@
 
 %type <_paramList> argument_expression_list argument_expression_list_opt
 %token <_identifier> IDENTIFIER
-%type <_declarator> type_specifier declaration_specifiers specifier_qualifier_list type_name pointer pointer_opt
+%type <_declarator> type_specifier  pointer pointer_opt
 
 // Auxiliary non-terminal M of type instr to help in backpatching
 %type <_instruction> M
@@ -319,13 +317,7 @@ postfix_expression :    primary_expression {
 																	globalQuadArray.emit(Q_MINUS,$1.symTPtr->name,"1",$1.symTPtr->name);
 																}
 																$$.type = $$.symTPtr->type;
-															  } |
-								'(' type_name ')' '{' initializer_list '}' {
-																				/*------*/
-																		   }|
-								'(' type_name ')' '{' initializer_list ',' '}' {
-																					/*------*/
-																			   };
+															  };
 
 argument_expression_list:       assignment_expression {
 														$$.args = new vector<expression*>;
@@ -450,9 +442,7 @@ unary_expression:               postfix_expression {
 																		default:
 																			break;
 																	}
-																}|
-								SIZEOF unary_expression {}|
-								SIZEOF '(' type_name ')' {};
+																};
 
 unary_operator  :               '&' {
 										$$ = '&';
@@ -497,10 +487,7 @@ cast_expression :               unary_expression {
 													}
 													else
 														$$ = $1;
-												}|
-								'(' type_name ')' cast_expression{
-																	/*--------*/
-																 };
+												};
 
 multiplicative_expression:      cast_expression {
 													$$ = $1;
@@ -751,11 +738,6 @@ assignment_expression:          conditional_expression {
 																								//printf("assign %s = %s\n",$3.symTPtr->name.c_str(),$$.symTPtr->name.c_str());
 																							};
 
-/*A constant value of this expression exists*/
-constant_expression:            conditional_expression {
-															$$ = $1;
-													   };
-
 expression :                    assignment_expression {
 															$$ = $1;
 													  }|
@@ -765,7 +747,7 @@ expression :                    assignment_expression {
 
 /*Declarations*/
 
-declaration:                    declaration_specifiers init_declarator_list_opt ';' {
+declaration:                    type_specifier init_declarator_list_opt ';' {
 																						if($2.symTPtr != NULL && $2.type != NULL && $2.type->type == tp_func)
 																						{
 																							/*Delete currentSymbolTable*/
@@ -785,13 +767,6 @@ init_declarator_list_opt:       init_declarator_list {
 												$$.symTPtr = NULL;
 											};
 
-declaration_specifiers:         storage_class_specifier declaration_specifiers_opt {}|
-								type_specifier declaration_specifiers_opt               |
-								type_qualifier declaration_specifiers_opt {}|
-								function_specifier declaration_specifiers_opt {};
-
-declaration_specifiers_opt:     declaration_specifiers                                  |
-								/*epsilon*/                                             ;
 
 init_declarator_list:           init_declarator {
 													/*Expecting only function declaration*/
@@ -843,39 +818,19 @@ init_declarator:                declarator {
 																globalQuadArray.emit(Q_ASSIGN,$3.symTPtr->name,$1.symTPtr->name);
 															};
 
-storage_class_specifier:        EXTERN {}|
-								STATIC {};
 
 type_specifier:                 VOID {
 										globalType = new symbolType(tp_void);
 									}|
-								CHAR {
-										globalType = new symbolType(tp_char);
-									}|
-								SHORT {}|
 								INT {
 										globalType = new symbolType(tp_int);
-									}|
-								LONG {}|
-								FLOAT {}|
-								DOUBLE {
-											globalType = new symbolType(tp_double);
-										};
-
-specifier_qualifier_list:       type_specifier specifier_qualifier_list_opt {
-																				/*----------*/
-																			}|
-								type_qualifier specifier_qualifier_list_opt {};
-
-specifier_qualifier_list_opt:   specifier_qualifier_list {}|
-								/*epsilon*/ {};
+									};
 
 
 type_qualifier:                 CONST {}|
 								RESTRICT {}|
 								VOLATILE {};
 
-function_specifier:             INLINE {};
 
 declarator :                    pointer_opt direct_declarator {
 																if($1.type == NULL)
@@ -946,9 +901,6 @@ direct_declarator:              IDENTIFIER {
 													}
 													$$.type = $$.symTPtr->type;
 											}|
-								'(' declarator ')' {
-														$$ = $2;
-													}|
 								direct_declarator '[' type_qualifier_list_opt assignment_expression_opt ']' {
 																												//printf("Hello\n");
 																												if($1.type->type == tp_arr)
@@ -1177,13 +1129,9 @@ assignment_expression_opt:      assignment_expression {
 identifier_list_opt:            identifier_list                                         |
 								/*epsilon*/                                             ;
 
-pointer:                        '*' type_qualifier_list_opt {
+pointer:                        '*' {
 																$$.type = new symbolType(tp_ptr);
-															}|
-								'*' type_qualifier_list_opt pointer {
-																		$$.type = new symbolType(tp_ptr,1,$3.type);
-																	};
-
+															}
 type_qualifier_list:            type_qualifier {}|
 								type_qualifier_list type_qualifier {};
 
@@ -1201,38 +1149,21 @@ parameter_list:                 parameter_declaration {
 																			(currentSymbolTable->emptyArgList)++;
 																		};
 
-parameter_declaration:          declaration_specifiers declarator {
+parameter_declaration:          type_specifier declarator {
 																		/*The parameter is already added to the current Symbol Table*/
 																  }|
-								declaration_specifiers {};
+								type_specifier {};
 
 identifier_list :               IDENTIFIER                                              |
 								identifier_list ',' IDENTIFIER                          ;
-
-type_name:                      specifier_qualifier_list                                ;
+                            ;
 
 initializer:                    assignment_expression {
 									$$ = $1;
-								}|
-								'{' initializer_list '}' {}|
-								'{' initializer_list ',' '}' {};
-
-initializer_list:               designation_opt initializer                             |
-								initializer_list ',' designation_opt initializer        ;
-
-designation_opt:                designation                                             |
-								/*Epslion*/                                             ;
-
-designation:                    designator_list '='                                     ;
-
-designator_list:                designator                                              |
-								designator_list designator                              ;
-
-designator:                     '[' constant_expression ']'                             |
-								'.' IDENTIFIER {};
+								};
 
 /*Statements*/
-statement:                      labeled_statement {/*Switch Case*/}|
+statement:                      
 								compound_statement {
 														$$ = $1;
 													}|
@@ -1250,9 +1181,6 @@ statement:                      labeled_statement {/*Switch Case*/}|
 													
 												};
 
-labeled_statement:              IDENTIFIER ':' statement {}|
-								CASE constant_expression ':' statement {}|
-								DEFAULT ':' statement {};
 
 compound_statement:             '{' block_item_list_opt '}' {
 																$$ = $2;
@@ -1316,30 +1244,9 @@ selection_statement:            IF '(' expression N ')' M statement N ELSE M sta
 																		
 																		backpatch($3.truelist,$6);
 																		$$ = merge($7,$3.falselist);
-																	}|
-								SWITCH '(' expression ')' statement {};
+																	};
 
-iteration_statement:            WHILE '(' M expression N ')' M statement {
-																			/*The first 'M' takes into consideration that the control will come again at the beginning of the condition checking.'N' here does the work of breaking condition i.e. it generate goto which wii be useful when we are exiting from while loop. Finally, the last 'M' is here to note the startinf statement that will be executed in every loop to populate the truelists of expression*/
-																			globalQuadArray.emit(Q_GOTO,$3);
-																			
-																			backpatch($8,$3);           /*S._nextlist to M1._instruction*/
-																			backpatch($5,nextInstruction);    /*N1._nextlist to nextInstruction*/
-																			CONV2BOOL(&$4);
-																		
-																			backpatch($4.truelist,$7);
-																			$$ = $4.falselist;
-																		}|
-								DO M statement  WHILE '(' M expression N ')' ';' {
-																					/*M1 is used for coming back again to the statement as it stores the instruction which will be needed by the truelist of expression. M2 is neede as we have to again to check the condition which will be used to populate the _nextlist of statements. Further N is used to prevent from fall through*/
-																					backpatch($8,nextInstruction);
-																					backpatch($3,$6);           /*S1._nextlist to M2._instruction*/
-																					CONV2BOOL(&$7);
-																					
-																					backpatch($7.truelist,$2);  /*B.truelist to M1._instruction*/
-																					$$ = $7.falselist;
-																				}|
-								FOR '(' expression_opt ';' M expression_opt N ';' M expression_opt N ')' M statement {
+iteration_statement:            FOR '(' expression_opt ';' M expression_opt N ';' M expression_opt N ')' M statement {
 																													   /*M1 is used for coming back to check the epression at every iteration. N1 is used  for generating the goto which will be used for exit conditions. M2 is used for _nextlist of statement and N2 is used for jump to check the expression and M3 is used for the truelist of expression*/
 																														backpatch($11,$5);          /*N2._nextlist to M1._instruction*/
 																														backpatch($14,$9);          /*S._nextlist to M2._instruction*/
@@ -1353,9 +1260,7 @@ iteration_statement:            WHILE '(' M expression N ')' M statement {
 																													}|
 								FOR '(' declaration expression_opt ';' expression_opt ')' statement {};
 
-jump_statement:                 GOTO IDENTIFIER ';' {}|
-								CONTINUE ';' {}|
-								BREAK ';' {}|
+jump_statement:                 
 								RETURN expression_opt ';' {
 																if($2.symTPtr == NULL)
 																	globalQuadArray.emit(Q_RETURN);
@@ -1378,40 +1283,38 @@ translation_unit:               external_declaration                            
 
 external_declaration:           function_definition                                     |
 								declaration      {
+									for(int i=0;i<currentSymbolTable->symbolTabList.size();i++)
+									{
+										if(currentSymbolTable->symbolTabList[i]->nested==NULL)
+										{
+											
+											if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
+											{
+												symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
+												if(glob_var==NULL)
+												{
+													glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
+													int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
+													glob_var->offset=globalSymbolTable->offset;
+													
+													glob_var->width=t_size;
+													globalSymbolTable->offset+=t_size;
+													glob_var->nested=globalSymbolTable;
+													
+													glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
+													glob_var->type=currentSymbolTable->symbolTabList[i]->type;
+													if(currentSymbolTable->symbolTabList[i]->isInitialized)
+													{
+														glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
+														glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
+													}
+												}
+											}
+										}
+									}
+								};
 
-																						for(int i=0;i<currentSymbolTable->symbolTabList.size();i++)
-																						{
-																									if(currentSymbolTable->symbolTabList[i]->nested==NULL)
-																									{
-																										
-																									if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
-																									{
-																										symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
-																										if(glob_var==NULL)
-																										{
-																											glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
-																											int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
-																											glob_var->offset=globalSymbolTable->offset;
-																											
-																											glob_var->width=t_size;
-																											globalSymbolTable->offset+=t_size;
-																											glob_var->nested=globalSymbolTable;
-																											
-																											glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
-																											glob_var->type=currentSymbolTable->symbolTabList[i]->type;
-																											if(currentSymbolTable->symbolTabList[i]->isInitialized)
-																											{
-																												glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
-																												glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
-																											}
-																										}
-																									}
-																								  }
-																						}
-
-													}                                       ;
-
-function_definition:    declaration_specifiers declarator declaration_list_opt compound_statement {
+function_definition:    type_specifier declarator declaration_list_opt compound_statement {
 																									symbol * func = globalSymbolTable->lookup($2.symTPtr->name);
 																									//printf("Hello2\n");
 																									func->nested->symbolTabList[0]->type = CopyType(func->type);

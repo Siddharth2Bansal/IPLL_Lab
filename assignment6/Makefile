@@ -40,25 +40,25 @@ $(EXEC): y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o myl.o
 
 $(MAIN)_converter.o: $(MAIN)_converter.cpp
 	$(CC) -g -c -no-pie $(MAIN)_converter.cpp
-	$(call log,converter object file made)
+	$(call success,converter object file made)
 
 $(MAIN)_translator.o: $(MAIN)_translator.cpp
 	$(CC) -g -c -no-pie $(MAIN)_translator.cpp
-	$(call log,translator object file made)
+	$(call success,translator object file made)
 
 lex.yy.o: $(MAIN).l
 	flex $(MAIN).l
 	$(CC) -g -c -no-pie lex.yy.c
-	$(call log,lex file compiled)
+	$(call success,lex file compiled)
 
 y.tab.o: $(MAIN).y
 	yacc -dtv $(MAIN).y -Wno-empty-rule -Wno-yacc -Wno-conflicts-rr
 	$(CC) -g -no-pie -DYYDEBUG -c y.tab.c
-	$(call log,bison file compiled)
+	$(call success,bison file compiled)
 
 myl.o: myl.cpp myl.h
 	$(CC) -g -no-pie -Wall -c myl.cpp
-	$(call log,myl file compiled)
+	$(call success,myl file compiled)
 
 test: $(EXEC)
 	$(call log,::Creating output directory [if it doesn't exists]::)

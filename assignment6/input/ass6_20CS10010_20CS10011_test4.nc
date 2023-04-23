@@ -1,12 +1,11 @@
-int upper_bound(int d[],int n,int x)
+int upper_bound(int *d,int n,int x)
 {
     int l=0;
     int r=n-1;
     int ans=n;
     int m;
 
-    while (l<=r)
-    {
+    
         m=(l+r)/2;
         if(d[m]>x){
             ans=m;
@@ -14,13 +13,15 @@ int upper_bound(int d[],int n,int x)
         }else{
             l=m+1;
         }
-    }
+    
     return ans;
 }
 
-int lis_length(int a[],int n) {
+int lis_length(int *a,int n) {
 	int INF = 1000;
-	int i,j,d[101];
+	int i;
+    int j;
+    int d[101];
     for(i=1;i<=100;i++)
         d[i]=INF;
 	d[0] = -INF;
@@ -39,7 +40,10 @@ int lis_length(int a[],int n) {
 }
 
 int main() {
-    int a[100], i, n,l;
+    int a[100];
+    int i;
+    int n;
+    int l;
     int eP = 1;
     printStr("### Calculate size of LIS of an array in O(NlogN) ###\n\n");
     printStr("Enter size of array (n<=100) : \n");

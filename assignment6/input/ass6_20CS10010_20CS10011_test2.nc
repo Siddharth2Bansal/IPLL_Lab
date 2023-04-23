@@ -1,4 +1,4 @@
-int merge(int a[], int left, int mid, int right)
+int merge(int *a, int left, int mid, int right)
 {
     int i = left;
     int j = mid + 1;
@@ -6,27 +6,31 @@ int merge(int a[], int left, int mid, int right)
     int inversions = 0;
     int temp[100];
 
-    while (i <= mid && j <= right)
-    {
+   
         if (a[i] <= a[j])
         {
-            temp[k++] = a[i++];
+            temp[k] = a[i];
+            k=k+1;
+            i=i+1;
         }
         else
         {
-            temp[k++] = a[j++];
+            temp[k] = a[j];
+            k=k+1;
+            j=j+1;
             inversions = inversions + mid - i + 1;
         }
-    }
+    
 
-    while (i <= mid)
-    {
-        temp[k++] = a[i++];
-    }
-    while (j <= right)
-    {
-        temp[k++] = a[j++];
-    }
+   
+        temp[k] = a[i];
+        k=k+1;
+        i=i+1;
+
+    
+    
+        temp[k] = a[j];
+    
     for (i = left; i <= right; i++)
     {
         a[i] = temp[i - left];
@@ -35,7 +39,7 @@ int merge(int a[], int left, int mid, int right)
     return inversions;
 }
 
-int merge_sort(int a[], int left, int right)
+int merge_sort(int *a, int left, int right)
 {
     int inversions = 0;
     int mid = 0;
@@ -52,7 +56,9 @@ int merge_sort(int a[], int left, int right)
 
 int main()
 {
-    int a[100], i, n;
+    int a[100];
+    int i;
+    int n;
     int err = 1;
     printStr("### Merge Sort and also find no. of inversions in an array in O(NlogN) ###\n\n");
     

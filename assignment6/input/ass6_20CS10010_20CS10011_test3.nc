@@ -1,6 +1,9 @@
 int main()
 {
-    int n,i,j,eP=1;
+    int n;
+    int i;
+    int j;
+    int eP=1;
     int spf[101];
 
     printStr("### Find all prime numbers till N in O(NloglogN) using Sieve of Eratosthenes ###\n\n");

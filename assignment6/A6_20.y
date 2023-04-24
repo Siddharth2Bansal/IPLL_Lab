@@ -49,7 +49,6 @@
 	logical_AND_expression 
 	logical_OR_expression
 	conditional_expression 
-	assignment_expression_opt 
 	assignment_expression 
 	expression
 	expression_statement 
@@ -584,10 +583,6 @@ type_specifier:     VOID {
 	};
 
 
-type_qualifier:     CONST {}|
-					RESTRICT {}|
-					VOLATILE {};
-
 
 declarator :    pointer_opt direct_declarator {
 		if($1.type == NULL)
@@ -647,7 +642,7 @@ direct_declarator:      IDENTIFIER {
 		}
 		$$.type = $$.symTPtr->type;
 	}|
-	direct_declarator '[' type_qualifier_list_opt assignment_expression_opt ']' {
+	direct_declarator '[' INTEGER_CONSTANT ']' {
 		//printf("Hello\n");
 		if($1.type->type == tp_arr)
 		{
@@ -660,7 +655,7 @@ direct_declarator:      IDENTIFIER {
 				typ1 = typ1->next;
 				typ = typ->next;
 			}
-			typ->next = new symbolType(tp_arr,$4.symTPtr->_init_val._INT_INITVAL,typ1);
+			typ->next = new symbolType(tp_arr,$3,typ1);
 		}
 		else
 		{
@@ -676,11 +671,7 @@ direct_declarator:      IDENTIFIER {
 				int n;
 			}
 			//add the type of array to list
-			
-			if($4.symTPtr == NULL)
-				$1.type = new symbolType(tp_arr,-1,$1.type);
-			else
-				$1.type = new symbolType(tp_arr,$4.symTPtr->_init_val._INT_INITVAL,$1.type);
+				$1.type = new symbolType(tp_arr,$3,$1.type);
 		}
 		$$ = $1;
 		$$.symTPtr->type = $$.type;
@@ -761,25 +752,10 @@ direct_declarator:      IDENTIFIER {
 		$$.type = new symbolType(tp_func);
 	};
 
-type_qualifier_list_opt:        type_qualifier_list {}|
-	/*epsilon*/ {};
-
-assignment_expression_opt:      assignment_expression {
-		$$ = $1;
-	}|
-	/*epsilon*/ {
-		$$.symTPtr = NULL;
-
-	};
-
-
 
 pointer:    '*' {
 		$$.type = new symbolType(tp_ptr);
 	}
-
-type_qualifier_list:    type_qualifier {}|
-	type_qualifier_list type_qualifier {};
 
 parameter_list_opt:
 	parameter_list{}|

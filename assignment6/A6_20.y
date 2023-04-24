@@ -110,10 +110,6 @@ primary_expression: IDENTIFIER {
 			{
 				//If array
 				$$.arr = $$.symTPtr;
-				$$.symTPtr = currentSymbolTable->gentemp(new symbolType(tp_int));
-				$$.symTPtr->_init_val._INT_INITVAL = 0;
-				$$.symTPtr->isInitialized = true;
-				globalQuadArray.emit(Q_ASSIGN,0,$$.symTPtr->name);
 				$$.type = $$.arr->type;
 				$$.poss_array = $$.arr;
 			}
@@ -163,11 +159,9 @@ postfix_expression :    primary_expression {
 		//Explanation of Array handling
 
 		$$.symTPtr = currentSymbolTable->gentemp(new symbolType(tp_int));
-		symbol* temporary = currentSymbolTable->gentemp(new symbolType(tp_int));
 		char temp[10];
 		sprintf(temp,"%d",$1.type->next->sizeOfType());
-		globalQuadArray.emit(Q_MULT,$3.symTPtr->name,temp,temporary->name);
-		globalQuadArray.emit(Q_PLUS,$1.symTPtr->name,temporary->name,$$.symTPtr->name);
+		globalQuadArray.emit(Q_MULT,$3.symTPtr->name,temp,$$.symTPtr->name);
 		// the new size will be calculated and the temporary variable storing the size will be passed on a $$.symTPtr
 		//$$.arr <= base pointer
 		$$.arr = $1.arr;
@@ -326,6 +320,10 @@ multiplicative_expression:      unary_expression {
 		{
 			$$.symTPtr = currentSymbolTable->gentemp($1.type);
 			globalQuadArray.emit(Q_RDEREF, $1.symTPtr->name, $$.symTPtr->name);
+		}if($1.arr != NULL)
+		{
+			$$.symTPtr = currentSymbolTable->gentemp($1.type);
+			globalQuadArray.emit(Q_RINDEX,$1.arr->name,$1.symTPtr->name,$$.symTPtr->name);
 		}
 	}|
 	multiplicative_expression '*' unary_expression {
@@ -333,6 +331,11 @@ multiplicative_expression:      unary_expression {
 		{
 			temp_s = currentSymbolTable->gentemp($3.type);
 			globalQuadArray.emit(Q_RDEREF, $3.symTPtr->name, temp_s->name);
+		}
+		else if($3.arr != NULL)
+		{
+			temp_s = currentSymbolTable->gentemp($3.type);
+			globalQuadArray.emit(Q_RINDEX,$3.arr->name,$3.symTPtr->name,temp_s->name);
 		}
 		else
 		{
@@ -349,6 +352,11 @@ multiplicative_expression:      unary_expression {
 			temp_s = currentSymbolTable->gentemp($3.type);
 			globalQuadArray.emit(Q_RDEREF, $3.symTPtr->name, temp_s->name);
 		}
+		else if($3.arr != NULL)
+		{
+			temp_s = currentSymbolTable->gentemp($3.type);
+			globalQuadArray.emit(Q_RINDEX,$3.arr->name,$3.symTPtr->name,temp_s->name);
+		}
 		else
 		{
 			temp_s = $3.symTPtr;
@@ -364,6 +372,11 @@ multiplicative_expression:      unary_expression {
 		{
 			temp_s = currentSymbolTable->gentemp($3.type);
 			globalQuadArray.emit(Q_RDEREF, $3.symTPtr->name, temp_s->name);
+		}
+		else if($3.arr != NULL)
+		{
+			temp_s = currentSymbolTable->gentemp($3.type);
+			globalQuadArray.emit(Q_RINDEX,$3.arr->name,$3.symTPtr->name,temp_s->name);
 		}
 		else
 		{
@@ -552,10 +565,9 @@ assignment_expression:      conditional_expression {
 		}
 		else if(!$1.isPointer)
 			globalQuadArray.emit(Q_ASSIGN,$3.symTPtr->name,$1.symTPtr->name);
-		$$.symTPtr = currentSymbolTable->gentemp($3.type);
+		$$.symTPtr = $3.symTPtr;
 		$$.type = $$.symTPtr->type;
 		//printf("assgi hobobob %s == %s\n",)
-		globalQuadArray.emit(Q_ASSIGN,$3.symTPtr->name,$$.symTPtr->name);
 		
 		//printf("assign %s = %s\n",$3.symTPtr->name.c_str(),$$.symTPtr->name.c_str());
 	};

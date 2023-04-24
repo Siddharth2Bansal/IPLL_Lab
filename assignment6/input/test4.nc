@@ -1,25 +1,24 @@
 // Swap two numbers
-
-void swap(int *p, int *q);
+int swap(int p, int q, int*z) {
+    int t;
+    t = p;
+    p = q;
+    q = t;
+    return 1;
+}
 int main() {
     int x;
     int y;
-    readInt(&x);
-    readInt(&y);
+    int z;
+    x = readInt(&z);
+    y = readInt(&z);
     printStr("Before swap:\n");
     printStr("x = "); printInt(x);
     printStr(" y = "); printInt(y);
-    //swap(&x, &y);
+    swap(&x, &y, &z);
     printStr("\nAfter swap:\n");
     printStr("x = "); printInt(x);
     printStr(" y = "); printInt(y);
     return 0;
 }
 
-void swap(int *p, int *q) {
-    int t;
-    t = *p;
-    *p = *q;
-    *q = t;
-    return 0;
-}

@@ -626,7 +626,7 @@ void quadArray::print()
                 cout << "/";
                 break;
             case Q_MODULO:
-                cout << "%%";
+                cout << "%";
                 break;
             case Q_LEFT_OP:
                 cout << "<<";

@@ -1,9 +1,9 @@
-int main() {
-    int a[10];
-    int x = 0;
-    a[2] = 5;
-    int x;
-    x = 2%a[2];
+int ar[10];
+
+int main()
+{
+    ar[0] = 3;
+    int x = ar[0];
     printInt(x);
-    return 1;
+    return 0;
 }

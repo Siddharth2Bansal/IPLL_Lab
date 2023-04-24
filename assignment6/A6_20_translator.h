@@ -28,7 +28,7 @@ using namespace std;
 #define __CHARACTER_SIZE 1
 #define __BOOLEAN_SIZE 1
 #define __INTEGER_SIZE 4
-#define __POINTER_SIZE 4
+#define __POINTER_SIZE 8
 #define __DOUBLE_SIZE 8
 
 extern map<int, int> mp_set;

@@ -4,4 +4,3 @@ declarator = initializer probably has redundant parts in it
 declarator helper to be added
 add (expression) support
 void function prototyping not working, idk why
-prototype without identifier in parameter declaration is erroneous

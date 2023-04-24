@@ -123,12 +123,22 @@ primary_expression: IDENTIFIER {
 		}
 		else
 		{
-			// It is a function
-			$$.symTPtr = check_func;
-			$$.type = check_func->type;
-			$$.arr = NULL;
-			$$.isPointer = false;
-			
+				$$.symTPtr = check_func;
+				if($$.symTPtr->type != NULL && $$.symTPtr->type->type == tp_arr)
+				{
+					//If array
+					$$.arr = $$.symTPtr;
+					$$.type = $$.arr->type;
+					$$.poss_array = $$.arr;
+				}
+				else
+				{
+					// If not an array
+					$$.type = $$.symTPtr->type;
+					$$.arr = NULL;
+					$$.isPointer = false;
+				}
+
 		}
 	} |
 	INTEGER_CONSTANT {
@@ -699,7 +709,40 @@ direct_declarator:      IDENTIFIER {
 		int params_no=currentSymbolTable->emptyArgList;
 		//printf("no.ofparameters-->%d\n",params_no);
 		currentSymbolTable->emptyArgList=0;
-
+		int dec_params=0;
+		
+		int over_params=params_no;
+		for(int i=currentSymbolTable->symbolTabList.size()-1;i>=0;i--)
+		{
+			//printf("what-->%s\n",currentSymbolTable->symbolTabList[i]->name.c_str());
+		}
+		for(int i=currentSymbolTable->symbolTabList.size()-1;i>=0;i--)
+		{
+			//printf("mazaknaminST-->%s\n",currentSymbolTable->symbolTabList[i]->name.c_str());
+			string detect=currentSymbolTable->symbolTabList[i]->name;
+			if(over_params==0)
+			{
+				break;
+			}
+			if(detect.size()==4)
+			{
+				if(detect[0]=='t')
+				{
+					
+					if('0'<=detect[1]&&detect[1]<='9')
+					{
+						if('0'<=detect[2]&&detect[2]<='9')
+						{
+							if('0'<=detect[3]&&detect[3]<='9')
+								dec_params++;
+						}
+					}
+				}
+			}
+			else
+				over_params--;
+		}
+		params_no+=dec_params;
 		//printf("no.ofparameters-->%d\n",params_no);
 		int temp_i=currentSymbolTable->symbolTabList.size()-params_no;
 		symbol * new_func = globalSymbolTable->search(currentSymbolTable->symbolTabList[temp_i-1]->name);
@@ -709,6 +752,33 @@ direct_declarator:      IDENTIFIER {
 			new_func = globalSymbolTable->lookup(currentSymbolTable->symbolTabList[temp_i-1]->name);
 			$$.symTPtr = currentSymbolTable->symbolTabList[temp_i-1];
 			
+			for(int i=0;i<(temp_i-1);i++)
+			{
+				currentSymbolTable->symbolTabList[i]->isValid=false;
+				if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
+				{
+					symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
+					if(glob_var==NULL)
+					{
+						
+						glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
+						int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
+						glob_var->offset=globalSymbolTable->offset;
+						glob_var->width=t_size;
+						globalSymbolTable->offset+=t_size;
+					
+						glob_var->nested=globalSymbolTable;
+						glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
+						glob_var->type=currentSymbolTable->symbolTabList[i]->type;
+						if(currentSymbolTable->symbolTabList[i]->isInitialized)
+						{
+							glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
+							glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
+						}
+
+					}
+				}
+			}
 			if(new_func->var_type == "")
 			{
 				// Declaration of the function for the first time

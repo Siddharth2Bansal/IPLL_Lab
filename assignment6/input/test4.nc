@@ -1,20 +1,25 @@
-// for and if
+// Swap two numbers
 
-int main(){
-    int x=0;
+void swap(int *p, int *q);
+int main() {
+    int x;
     int y;
-    int a;
-    //for(a=2;a<=5;a=a+1)
-    //{
-     //   x=1;
-    //}
-    //if(y || x==2 && x+y)
-    //{
-     //   y = 5;
-    //}
-    if(y>2)
-    {
-        x=2;
-    }
+    readInt(&x);
+    readInt(&y);
+    printStr("Before swap:\n");
+    printStr("x = "); printInt(x);
+    printStr(" y = "); printInt(y);
+    //swap(&x, &y);
+    printStr("\nAfter swap:\n");
+    printStr("x = "); printInt(x);
+    printStr(" y = "); printInt(y);
+    return 0;
+}
+
+void swap(int *p, int *q) {
+    int t;
+    t = *p;
+    *p = *q;
+    *q = t;
     return 0;
 }

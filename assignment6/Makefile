@@ -1,10 +1,12 @@
 MAIN := A6_20
-IN_DIR := ./input
-OUT_DIR := ./output
-TESTFILES := $(wildcard $(IN_DIR)/*.nc) 
+INPUT_DIR:= input
+OUTPUT_DIR:= output
+QUAD_DIR := quads
+EXEC_DIR:= exec
+.PHONY: test
 
-tinyc: y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o 
-	@g++ -no-pie -g $(MAIN)_translator.o $(MAIN)_converter.o lex.yy.o y.tab.o -lfl -o tinyc
+nanoC: y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o 
+	@g++ -no-pie -g $(MAIN)_translator.o $(MAIN)_converter.o lex.yy.o y.tab.o -lfl -o nanoC
 
 lex.yy.c: $(MAIN).l
 	@flex $(MAIN).l
@@ -32,10 +34,9 @@ ass2_16CS10053.o: myl.c myl.h
 
 clean:
 	@rm *.s \
-	test1 test2 test3 test4 test5 \
 	lex.yy.c y.tab.h y.output y.tab.c lex.yy.o y.tab.o \
 	*.o libmyl.a \
-	*.out tinyc
+	*.out nanoC
 
 
 test1: $(MAIN)_test1.o libmyl.a
@@ -71,32 +72,33 @@ output.o: output.s myl.h
 	@gcc -no-pie -g -Wall -c output.s
 
 run: 
-		
-	@./tinyc < ./input/test1.nc > $(MAIN)_quad1.out
+	mkdir -p $(QUAD_DIR)
+	@echo 1 rn
+	@./nanoC < ./$(INPUT_DIR)/test1.nc > ./$(QUAD_DIR)/quad1.out
 	
 	@mv output.s $(MAIN)_test1.s
 	
 	@make test1
-	
-	@./tinyc < ./input/test2.nc > $(MAIN)_quad2.out
+	@echo 2 rn
+	@./nanoC < ./$(INPUT_DIR)/test2.nc > ./$(QUAD_DIR)/quad2.out
 
 	@mv output.s $(MAIN)_test2.s
 	
 	@make test2
-
-	@./tinyc < ./input/test3.nc > $(MAIN)_quad3.out
+	@echo 3 rn
+	@./nanoC < ./$(INPUT_DIR)/test3.nc > ./$(QUAD_DIR)/quad3.out
 
 	@mv output.s $(MAIN)_test3.s
 
 	@make test3
-
-	@./tinyc < ./input/test4.nc > $(MAIN)_quad4.out
+	@echo 4 rn
+	@./nanoC < ./$(INPUT_DIR)/test4.nc > ./$(QUAD_DIR)/quad4.out
 	
 	@mv output.s $(MAIN)_test4.s
 
 	@make test4
-
-	@./tinyc < ./input/test5.nc > $(MAIN)_quad5.out
+	@echo 5 rn
+	@./nanoC < ./$(INPUT_DIR)/test5.nc > ./$(QUAD_DIR)/quad5.out
 	
 	@mv output.s $(MAIN)_test5.s
 

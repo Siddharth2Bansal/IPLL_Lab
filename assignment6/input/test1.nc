@@ -2,6 +2,9 @@ int main() {
 int x = 2;
 int y = 3;
 int z;
+int* p = &x;
+*p = 5;
+y = 5 * *p / *p;
 z = x + y;
 printInt(x);
 printStr("+");

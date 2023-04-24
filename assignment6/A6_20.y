@@ -1,16 +1,9 @@
-//#########################################
-//## Ashish Rekhani (20CS10010)          ##
-//## Ashwani Kumar Kamal (20CS10011)     ##
-//## Compilers Laboratory                ##
-//## Assignment - 6                      ##
-//#########################################
-//# GCC version: gcc (GCC) 12.1.1 20220730
-
 %{
 	#include "A6_20_translator.h"
 	void yyerror(const char*);
 	extern "C" int yylex(void);
 	using namespace std;
+	symbol* temp_s;
 %}
 
 
@@ -58,6 +51,10 @@
 	initializer 
 	declaration 
 	init_declarator
+	condition
+    and_helper
+    or_helper
+    if_helper
 
 %type <_nextlist>
 	block_item_list 
@@ -70,7 +67,7 @@
 
 %type <_paramList> argument_expression_list argument_expression_list_opt
 %token <_identifier> IDENTIFIER
-%type <_declarator> type_specifier  pointer pointer_opt
+%type <_declarator> type_specifier  pointer pointer_opt 
 
 // Auxiliary non-terminal M of type instr to help in backpatching
 %type <_instruction> M
@@ -325,28 +322,59 @@ unary_operator  :   '&' {
 
 multiplicative_expression:      unary_expression {
 		$$ = $1;
+		if($1.isPointer)
+		{
+			$$.symTPtr = currentSymbolTable->gentemp($1.type);
+			globalQuadArray.emit(Q_RDEREF, $1.symTPtr->name, $$.symTPtr->name);
+		}
 	}|
 	multiplicative_expression '*' unary_expression {
-		typecheck(&$1,&$3);
+		if($3.isPointer)
+		{
+			temp_s = currentSymbolTable->gentemp($3.type);
+			globalQuadArray.emit(Q_RDEREF, $3.symTPtr->name, temp_s->name);
+		}
+		else
+		{
+			temp_s = $3.symTPtr;
+		}
 		$$.symTPtr = currentSymbolTable->gentemp($1.type);
 		$$.type = $$.symTPtr->type;
 		
-		globalQuadArray.emit(Q_MULT,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
+		globalQuadArray.emit(Q_MULT,$1.symTPtr->name,temp_s->name,$$.symTPtr->name);
 	}|
 	multiplicative_expression '/' unary_expression {
+		if($3.isPointer)
+		{
+			temp_s = currentSymbolTable->gentemp($3.type);
+			globalQuadArray.emit(Q_RDEREF, $3.symTPtr->name, temp_s->name);
+		}
+		else
+		{
+			temp_s = $3.symTPtr;
+		}
 		typecheck(&$1,&$3);
 		$$.symTPtr = currentSymbolTable->gentemp($1.type);
 		$$.type = $$.symTPtr->type;
 		
-		globalQuadArray.emit(Q_DIVIDE,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
+		globalQuadArray.emit(Q_DIVIDE,$1.symTPtr->name,temp_s->name,$$.symTPtr->name);
 	}|
 	multiplicative_expression '%' unary_expression{
+		if($3.isPointer)
+		{
+			temp_s = currentSymbolTable->gentemp($3.type);
+			globalQuadArray.emit(Q_RDEREF, $3.symTPtr->name, temp_s->name);
+		}
+		else
+		{
+			temp_s = $3.symTPtr;
+		}
 		typecheck(&$1,&$3);
 		
 		$$.symTPtr = currentSymbolTable->gentemp($1.type);
 		$$.type = $$.symTPtr->type;
 		
-		globalQuadArray.emit(Q_MODULO,$1.symTPtr->name,$3.symTPtr->name,$$.symTPtr->name);
+		globalQuadArray.emit(Q_MODULO,$1.symTPtr->name,temp_s->name,$$.symTPtr->name);
 	};
 
 additive_expression :   multiplicative_expression {
@@ -434,56 +462,72 @@ equality_expression:    relational_expression {
 		globalQuadArray.emit(Q_GOTO,"-1");
 	};
 
+and_helper: logical_AND_expression AND
+    {
+		if($1.type->type != tp_bool)
+			CONV2BOOL(&$1);
+        $$ = $1;
+    }
+
 
 logical_AND_expression:     equality_expression {
 		$$ = $1;
 	}|
-	logical_AND_expression AND M equality_expression {
-		if($1.type->type != tp_bool)
-			CONV2BOOL(&$1);
-		if($4.type->type != tp_bool)
-			CONV2BOOL(&$4);
-		backpatch($1.truelist,$3);
+	and_helper M equality_expression {
+		if($3.type->type != tp_bool)
+			CONV2BOOL(&$3);
+		backpatch($1.truelist,$2);
 		$$.type = new symbolType(tp_bool);
 		
-		$$.falselist = merge($1.falselist,$4.falselist);
-		$$.truelist = $4.truelist;
+		$$.falselist = merge($1.falselist,$3.falselist);
+		$$.truelist = $3.truelist;
 	};
+
+or_helper: logical_OR_expression OR
+    {
+        if($1.type->type != tp_bool)
+			CONV2BOOL(&$1);
+        $$ = $1;
+    }
 
 logical_OR_expression:      logical_AND_expression {
 		$$ = $1;
 	}|
-	logical_OR_expression OR M logical_AND_expression   {
-		if($1.type->type != tp_bool)
-			CONV2BOOL(&$1);
-		if($4.type->type != tp_bool)
-			CONV2BOOL(&$4);
-		backpatch($1.falselist,$3);
+	or_helper M logical_AND_expression   {
+		if($3.type->type != tp_bool)
+			CONV2BOOL(&$3);
+		backpatch($1.falselist,$2);
 		$$.type = new symbolType(tp_bool);
 		
-		$$.truelist = merge($1.truelist,$4.truelist);
-		$$.falselist = $4.falselist;
+		$$.truelist = merge($1.truelist,$3.truelist);
+		$$.falselist = $3.falselist;
 	};
+
+
+condition: logical_OR_expression '?' 
+    {
+        if($1.type->type != tp_bool)
+			CONV2BOOL(&$1);
+        $$ = $1;
+    }
 
 /*It is assumed that type of expression and conditional expression are same*/
 conditional_expression:         logical_OR_expression {
 		$$ = $1;
 	}|
-	logical_OR_expression N '?' M expression N ':' M conditional_expression {
-		$$.symTPtr = currentSymbolTable->gentemp($5.type);
+	condition M expression N ':' M conditional_expression {
+		$$.symTPtr = currentSymbolTable->gentemp($3.type);
 		$$.type = $$.symTPtr->type;
-		globalQuadArray.emit(Q_ASSIGN,$9.symTPtr->name,$$.symTPtr->name);
+		globalQuadArray.emit(Q_ASSIGN,$7.symTPtr->name,$$.symTPtr->name);
 		list* TEMP_LIST = makelist(nextInstruction);
 		globalQuadArray.emit(Q_GOTO,"-1");
 		
-		backpatch($6,nextInstruction);
-		globalQuadArray.emit(Q_ASSIGN,$5.symTPtr->name,$$.symTPtr->name);
+		backpatch($4,nextInstruction);
+		globalQuadArray.emit(Q_ASSIGN,$3.symTPtr->name,$$.symTPtr->name);
 		TEMP_LIST = merge(TEMP_LIST,makelist(nextInstruction));
 		globalQuadArray.emit(Q_GOTO,"-1");
-		backpatch($2,nextInstruction);
-		CONV2BOOL(&$1);
-		backpatch($1.truelist,$4);
-		backpatch($1.falselist,$8);
+		backpatch($1.truelist,$2);
+		backpatch($1.falselist,$6);
 		backpatch(TEMP_LIST,nextInstruction);
 	};
 
@@ -773,29 +817,24 @@ expression_opt:     expression {
 		$$.symTPtr = NULL;
 	};
 
-selection_statement:    IF '(' expression N ')' M statement N ELSE M statement {
+if_helper: IF '(' expression
+    {
+        CONV2BOOL(&$3);
+        $$ = $3;   
+    }
+
+selection_statement:    if_helper ')' M statement N ELSE M statement {
 		/*N1 is used for falselist of expression, M1 is used for truelist of expression, N2 is used to prevent fall through, M2 is used for falselist of expression*/
-		$7 = merge($7,$8);
-
-		$11 = merge($11,makelist(nextInstruction));
-		globalQuadArray.emit(Q_GOTO,"-1");
-		backpatch($4,nextInstruction);
-		
-		CONV2BOOL(&$3);
-
-		backpatch($3.truelist,$6);
-		backpatch($3.falselist,$10);
-		$$ = merge($7,$11);
+		$4 = merge($4,$5);
+		backpatch($1.truelist,$3);
+		backpatch($1.falselist,$7);
+		$$ = merge($4,$8);
 	}|
-	IF '(' expression N ')' M statement %prec IF_CONFLICT{
+	if_helper ')' M statement %prec IF_CONFLICT{
 		/*N is used for the falselist of expression to skip the block and M is used for truelist of expression*/
-		$7 = merge($7,makelist(nextInstruction));
-		globalQuadArray.emit(Q_GOTO,"-1");
-		backpatch($4,nextInstruction);
-		CONV2BOOL(&$3);
-		
-		backpatch($3.truelist,$6);
-		$$ = merge($7,$3.falselist);
+
+		backpatch($1.truelist,$3);
+		$$ = merge($4,$1.falselist);
 	};
 
 iteration_statement:    FOR '(' expression_opt ';' M expression_opt N ';' M expression_opt N ')' M statement {

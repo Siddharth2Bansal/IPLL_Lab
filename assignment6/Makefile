@@ -1,77 +1,110 @@
-# Makefile variables
-MAKEFLAGS += -s
-RM := rm -rf
 MAIN := A6_20
-EXEC := ./nanoC
 IN_DIR := ./input
 OUT_DIR := ./output
-TESTFILES := $(wildcard $(IN_DIR)/*.nc) # [./input/test1.c, ./input/test2.c, ...]
-_INPUTS := $(notdir $(TESTFILES)) # [test1.c, test2.c, ...]
-CC := g++
+TESTFILES := $(wildcard $(IN_DIR)/*.nc) 
 
-# Colors for printing and logging information on console
-LOG:= \033[0;36m
-SUCCESS:= \033[0;32m
-INFO:= \033[0;33m
-RESET:= \033[0m
+tinyc: y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o 
+	@g++ -no-pie -g $(MAIN)_translator.o $(MAIN)_converter.o lex.yy.o y.tab.o -lfl -o tinyc
 
-# Functions for printing and logging information on console
-define log
-  	printf  "${LOG}%s ${INFO}%s${RESET}\n" "$1" "$2"
-endef
+lex.yy.c: $(MAIN).l
+	@flex $(MAIN).l
 
-define success
-  	printf "${SUCCESS}%s${RESET}\n" "$1"
-endef
-
-# Explicit newline function
-define newline 
-
-
-endef
-
-default: test
-
-# Makefile recipes
-$(EXEC): y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o myl.o
-	$(CC) -g $(MAIN)_translator.o $(MAIN)_converter.o lex.yy.o y.tab.o -lfl -o $(EXEC)
-	$(call success,$(EXEC) binary successfully generated) 
-
+y.tab.c: $(MAIN).y
+	@yacc -dtv $(MAIN).y
 
 $(MAIN)_converter.o: $(MAIN)_converter.cpp
-	$(CC) -g -c -no-pie $(MAIN)_converter.cpp
-	$(call success,converter object file made)
+	@g++ -no-pie -g -c $(MAIN)_converter.cpp
 
 $(MAIN)_translator.o: $(MAIN)_translator.cpp
-	$(CC) -g -c -no-pie $(MAIN)_translator.cpp
-	$(call success,translator object file made)
+	@g++ -no-pie -g -c $(MAIN)_translator.cpp
 
-lex.yy.o: $(MAIN).l
-	flex $(MAIN).l
-	$(CC) -g -c -no-pie lex.yy.c
-	$(call success,lex file compiled)
+lex.yy.o: lex.yy.c
+	@g++ -no-pie -g -c lex.yy.c
 
-y.tab.o: $(MAIN).y
-	yacc -dtv $(MAIN).y -Wno-empty-rule -Wno-yacc -Wno-conflicts-rr
-	$(CC) -g -no-pie -DYYDEBUG -c y.tab.c
-	$(call success,bison file compiled)
+y.tab.o:    y.tab.c
+	@g++ -no-pie -g -DYYDEBUG -c y.tab.c
 
-myl.o: myl.cpp myl.h
-	$(CC) -g -no-pie -Wall -c myl.cpp
-	$(call success,myl file compiled)
+libmyl.a: myl.o
+	@ar -rcs libmyl.a myl.o
 
-test: $(EXEC)
-	$(call log,::Creating output directory [if it doesn't exists]::)
-	mkdir -p $(OUT_DIR)
-
-	$(call log,::Initiating testing...::)
-
-	$(foreach in_file, $(_INPUTS), $(call log,::Testing file::, $(in_file)) $(newline) $(EXEC) < $(IN_DIR)/$(in_file) > $(OUT_DIR)/$(in_file:.nc=quads.out) $(newline) mv $(OUT_DIR).s $(OUT_DIR)/$(in_file:.nc=.s) $(newline))
-
-	$(call success,Test outputs written to $(OUT_DIR))
+ass2_16CS10053.o: myl.c myl.h
+	@g++ -no-pie -Wall  -c myl.c
 
 clean:
-	$(RM) \
-	lex.yy.c y.tab.h y.tab.c y.output \
-	*.o *.s *.a *.out *.gch $(EXEC)
-	$(call success,cleaned)
+	@rm *.s \
+	test1 test2 test3 test4 test5 \
+	lex.yy.c y.tab.h y.output y.tab.c lex.yy.o y.tab.o \
+	*.o libmyl.a \
+	*.out tinyc
+
+
+test1: $(MAIN)_test1.o libmyl.a
+	@gcc -no-pie -g $(MAIN)_test1.o -o test1 -L. -lmyl
+
+$(MAIN)_test1.o: $(MAIN)_test1.s myl.h
+	@gcc -no-pie -g -Wall  -c $(MAIN)_test1.s -o $(MAIN)_test1.o
+
+test2: $(MAIN)_test2.o libmyl.a
+	@gcc -no-pie -g  $(MAIN)_test2.o -o test2 -L. -lmyl
+$(MAIN)_test2.o: $(MAIN)_test2.s myl.h
+	@gcc -no-pie -g -Wall -c $(MAIN)_test2.s
+
+test3: $(MAIN)_test3.o libmyl.a
+	@gcc -no-pie -g  $(MAIN)_test3.o -o test3 -L. -lmyl
+$(MAIN)_test3.o: $(MAIN)_test3.s myl.h
+	@gcc -no-pie -g -Wall  -c $(MAIN)_test3.s
+
+test4: $(MAIN)_test4.o libmyl.a
+	@gcc -no-pie -g  $(MAIN)_test4.o -o test4 -L. -lmyl
+$(MAIN)_test4.o: $(MAIN)_test4.s myl.h
+	@gcc -no-pie -g -Wall  -c $(MAIN)_test4.s
+
+test5: $(MAIN)_test5.o libmyl.a
+	@gcc -no-pie -g  $(MAIN)_test5.o -o test5 -L. -lmyl
+$(MAIN)_test5.o: $(MAIN)_test5.s myl.h
+	@gcc -no-pie -g -Wall -c $(MAIN)_test5.s
+
+#output: output.o
+output: output.o libmyl.a
+	@gcc -no-pie -g  output.o -o output -L. -lmyl
+output.o: output.s myl.h
+	@gcc -no-pie -g -Wall -c output.s
+
+run: 
+		
+	@./tinyc < ./input/test1.nc > $(MAIN)_quad1.out
+	
+	@mv output.s $(MAIN)_test1.s
+	
+	@make test1
+	
+	@./tinyc < ./input/test2.nc > $(MAIN)_quad2.out
+
+	@mv output.s $(MAIN)_test2.s
+	
+	@make test2
+
+	@./tinyc < ./input/test3.nc > $(MAIN)_quad3.out
+
+	@mv output.s $(MAIN)_test3.s
+
+	@make test3
+
+	@./tinyc < ./input/test4.nc > $(MAIN)_quad4.out
+	
+	@mv output.s $(MAIN)_test4.s
+
+	@make test4
+
+	@./tinyc < ./input/test5.nc > $(MAIN)_quad5.out
+	
+	@mv output.s $(MAIN)_test5.s
+
+	@make test5
+	@echo ""
+	@echo "Commands for Test Cases"
+	@echo "Test Case 1 : Calculate Interest    Command : ./test1"
+	@echo "Test Case 2 : Palindrome or Not     Command : ./test2"
+	@echo "Test Case 3 : Sum of Digits         Command : ./test3"
+	@echo "Test Case 4 : Longest Common Subse. Command : ./test4"
+	@echo "Test Case 5 : Merge Sort            Command : ./test5"

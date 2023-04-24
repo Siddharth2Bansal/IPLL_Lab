@@ -543,31 +543,20 @@ init_declarator:    declarator {
 		//initializations of declarators
 		if($3.type!=NULL)
 		{
-		if($3.type->type==tp_int)
-		{
-			$1.symTPtr->_init_val._INT_INITVAL= $3.symTPtr->_init_val._INT_INITVAL;
-			$1.symTPtr->isInitialized = true;
-			
-			symbol *temp_ver=currentSymbolTable->search($1.symTPtr->name);
-			if(temp_ver!=NULL)
+			if($3.type->type==tp_int)
 			{
-			//printf("po %s = %s\n",$1.symTPtr->name.c_str(),$3.symTPtr->name.c_str());
-			temp_ver->_init_val._INT_INITVAL= $3.symTPtr->_init_val._INT_INITVAL;
-			
-			temp_ver->isInitialized = true;
-			}
-		}
-		else if($3.type->type==tp_char)
-		{
-			$1.symTPtr->_init_val._CHAR_INITVAL= $3.symTPtr->_init_val._CHAR_INITVAL;
-			$1.symTPtr->isInitialized = true;
-			
-			symbol *temp_ver=currentSymbolTable->search($1.symTPtr->name);
-			if(temp_ver!=NULL)
-			{temp_ver->_init_val._CHAR_INITVAL= $3.symTPtr->_init_val._CHAR_INITVAL;
+				$1.symTPtr->_init_val._INT_INITVAL= $3.symTPtr->_init_val._INT_INITVAL;
+				$1.symTPtr->isInitialized = true;
+				
+				symbol *temp_ver=currentSymbolTable->search($1.symTPtr->name);
+				if(temp_ver!=NULL)
+				{
+				//printf("po %s = %s\n",$1.symTPtr->name.c_str(),$3.symTPtr->name.c_str());
+				temp_ver->_init_val._INT_INITVAL= $3.symTPtr->_init_val._INT_INITVAL;
+				
 				temp_ver->isInitialized = true;
+				}
 			}
-		}
 		}
 		//printf("%s = %s\n",$1.symTPtr->name.c_str(),$3.symTPtr->name.c_str());
 		//typecheck(&$1,&$3,true);

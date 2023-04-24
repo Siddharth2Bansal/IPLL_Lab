@@ -1,6 +1,12 @@
+int x=2;
+int y;
+int a[2];
+
 int main()
 {
     int n;
+    int x;
+    x = a[0];
     int i;
     int j;
     int eP=1;

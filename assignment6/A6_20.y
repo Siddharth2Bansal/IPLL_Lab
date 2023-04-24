@@ -643,36 +643,10 @@ direct_declarator:      IDENTIFIER {
 		$$.type = $$.symTPtr->type;
 	}|
 	direct_declarator '[' INTEGER_CONSTANT ']' {
-		//printf("Hello\n");
-		if($1.type->type == tp_arr)
-		{
-			/*if type is already an arr*/
-			symbolType * typ1 = $1.type,*typ = $1.type;
-			typ1 = typ1->next;
-			
-			while(typ1->next != NULL)
-			{
-				typ1 = typ1->next;
-				typ = typ->next;
-			}
-			typ->next = new symbolType(tp_arr,$3,typ1);
-		}
-		else
-		{
-			for(int l=0;l<10;++l) {
-				int pp = 0;
-			}
-			if(1) {
-				for(int m=0;m<10;++m) {
-					int k;
-				}
-			}
-			else{
-				int n;
-			}
-			//add the type of array to list
-				$1.type = new symbolType(tp_arr,$3,$1.type);
-		}
+		
+		//add the type of array to list
+		$1.type = new symbolType(tp_arr,$3,$1.type);
+	
 		$$ = $1;
 		$$.symTPtr->type = $$.type;
 	}|
@@ -690,33 +664,6 @@ direct_declarator:      IDENTIFIER {
 			new_func = globalSymbolTable->lookup(currentSymbolTable->symbolTabList[temp_i-1]->name);
 			$$.symTPtr = currentSymbolTable->symbolTabList[temp_i-1];
 			
-			// for(int i=0;i<(temp_i-1);i++)
-			// {
-			// 	currentSymbolTable->symbolTabList[i]->isValid=false;
-			// 	if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
-			// 	{
-			// 		symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
-			// 		if(glob_var==NULL)
-			// 		{
-						
-			// 			glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
-			// 			int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
-			// 			glob_var->offset=globalSymbolTable->offset;
-			// 			glob_var->width=t_size;
-			// 			globalSymbolTable->offset+=t_size;
-					
-			// 			glob_var->nested=globalSymbolTable;
-			// 			glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
-			// 			glob_var->type=currentSymbolTable->symbolTabList[i]->type;
-			// 			if(currentSymbolTable->symbolTabList[i]->isInitialized)
-			// 			{
-			// 				glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
-			// 				glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
-			// 			}
-
-			// 		}
-			// 	}
-			// }
 			if(new_func->var_type == "")
 			{
 				// Declaration of the function for the first time
@@ -873,20 +820,13 @@ iteration_statement:    FOR '(' expression_opt ';' M expression_opt N ';' M expr
 		
 		backpatch($6.truelist,$13);
 		$$ = $6.falselist;
-	}|
-	FOR '(' declaration expression_opt ';' expression_opt ')' statement {};
+	};
 
 jump_statement:     RETURN expression_opt ';' {
 		if($2.symTPtr == NULL)
 			globalQuadArray.emit(Q_RETURN);
 		else
 		{
-			expression * dummy = new expression();
-			dummy->symTPtr = currentSymbolTable->symbolTabList[0];
-			dummy->type = dummy->symTPtr->type;
-			typecheck(dummy,&$2,true);
-			
-			delete dummy;
 			globalQuadArray.emit(Q_RETURN,$2.symTPtr->name);
 		}
 		$$=NULL;
@@ -927,9 +867,10 @@ external_declaration:       function_definition  |
 				}
 			}
 		}
+		currentSymbolTable = new symbolTable();
 	};
 
-function_definition:    type_specifier declarator declaration_list_opt compound_statement {
+function_definition:    type_specifier declarator compound_statement {
 		symbol * func = globalSymbolTable->lookup($2.symTPtr->name);
 		//printf("Hello2\n");
 		func->nested->symbolTabList[0]->type = CopyType(func->type);
@@ -946,21 +887,10 @@ function_definition:    type_specifier declarator declaration_list_opt compound_
 				func->nested->symbolTabList[i]->offset += diff;
 			}
 		}
-		int offset_size = 0;
-		for(int i=0;i<func->nested->symbolTabList.size();i++)
-		{
-			offset_size += func->nested->symbolTabList[i]->width;
-		}
 		func->nested->lastQuad = nextInstruction-1;
 		//Create a new Current Symbol Table
 		currentSymbolTable = new symbolTable();
 };
-
-declaration_list_opt:   declaration_list                                        |
-	/*epsilon*/                                             ;
-
-declaration_list:       declaration                                             |
-		declaration_list declaration                            ;
 
 %%
 void yyerror(const char*s)

@@ -183,12 +183,6 @@ symbol *symbolTable::lookup(string n)
         i++;
     }
 
-    int val = 2;
-    for (int i = 0; i < 4; i++)
-    {
-        val /= 2;
-        val *= 3;
-    }
 
     symbol *temp_o = new symbol(n);
     temp_o->_init_val._INT_INITVAL = 0;
@@ -339,7 +333,7 @@ void symbolTable::print()
     cout << "Symbol Table : " << name << endl;
 
     printf("Offset = %d\nStart Quad Index = %d\nEnd Quad Index =  %d\n", offset, initQuad, lastQuad);
-    cout << "Name\tValue\tvar_type\tsize\tOffset\tType" << endl;
+    cout << setw(15) << left << "Name" <<setw(10) << left << "Value"<<setw(10) << left << "var_type"<<setw(10) << left << "size"<<setw(10) << left << "Offset"<<setw(10) << left << "Type" << endl;
 
     int n = symbolTabList.size(), i = 0;
     while (i < n)
@@ -347,18 +341,16 @@ void symbolTable::print()
         if (symbolTabList[i]->isValid)
         {
             symbol *t = symbolTabList[i];
-            cout << symbolTabList[i]->name << "\t";
+            cout << setw(15) << left<<symbolTabList[i]->name;
             if (!(t->isInitialized))
-                cout << "Null\t";
+                cout << setw(10) << left<<"Null";
             else
             {
                 types whatEver = (t->type)->type;
                 if (whatEver == tp_char)
-                    printf("%c\t", (t->_init_val)._CHAR_INITVAL);
+                    cout << setw(10) << left << (t->_init_val)._CHAR_INITVAL;
                 else if (whatEver == tp_int)
-                    printf("%d\t", (t->_init_val)._INT_INITVAL);
-                else if (whatEver == tp_double)
-                    printf("%.3lf\t", (t->_init_val)._DOUBLE_INITVAL);
+                    cout << setw(10) << left << (t->_init_val)._INT_INITVAL;
                 else
                 {
                     int j = 0;
@@ -370,9 +362,9 @@ void symbolTable::print()
                     cout << endl;
                 }
             }
-            cout << t->var_type;
+            cout <<setw(10) << left << t->var_type;
 
-            printf("\t\t%d\t%d\t", t->width, t->offset);
+            cout << setw(10) << left << t->width << setw(10) << left << t->offset;
 
             if (t->var_type == "func")
                 printf("ptr-to-St( %s )", t->nested->name.c_str());

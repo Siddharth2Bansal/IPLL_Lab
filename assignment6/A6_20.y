@@ -439,7 +439,7 @@ equality_expression:    relational_expression {
 logical_AND_expression:     equality_expression {
 		$$ = $1;
 	}|
-l	ogical_AND_expression AND M equality_expression {
+	logical_AND_expression AND M equality_expression {
 		if($1.type->type != tp_bool)
 			CONV2BOOL(&$1);
 		if($4.type->type != tp_bool)
@@ -601,18 +601,7 @@ declarator :    pointer_opt direct_declarator {
 			{
 				symbolType * test = $1.type;
 
-				int k = 2;
-				for(int i=0;i<10;++i) {
-					int l = 0;
-				}
-				if(k) {
-					for(int i=0;i<10;++i) {
-						int k;
-					}
-				}
-				else{
-					int o;
-				}
+				
 				while(test->next != NULL)
 				{
 					test = test->next;
@@ -696,45 +685,11 @@ direct_declarator:      IDENTIFIER {
 		$$ = $1;
 		$$.symTPtr->type = $$.type;
 	}|
-	direct_declarator '(' parameter_type_list ')' {
+	direct_declarator '(' parameter_list_opt ')' {
 		int params_no=currentSymbolTable->emptyArgList;
 		//printf("no.ofparameters-->%d\n",params_no);
 		currentSymbolTable->emptyArgList=0;
-		int dec_params=0;
-		
-		int over_params=params_no;
-		for(int i=currentSymbolTable->symbolTabList.size()-1;i>=0;i--)
-		{
-			//printf("what-->%s\n",currentSymbolTable->symbolTabList[i]->name.c_str());
-		}
-		for(int i=currentSymbolTable->symbolTabList.size()-1;i>=0;i--)
-		{
-			//printf("mazaknaminST-->%s\n",currentSymbolTable->symbolTabList[i]->name.c_str());
-			string detect=currentSymbolTable->symbolTabList[i]->name;
-			if(over_params==0)
-			{
-				break;
-			}
-			if(detect.size()==4)
-			{
-				if(detect[0]=='t')
-				{
-					
-					if('0'<=detect[1]&&detect[1]<='9')
-					{
-						if('0'<=detect[2]&&detect[2]<='9')
-						{
-							if('0'<=detect[3]&&detect[3]<='9')
-								dec_params++;
-						}
-					}
-				}
-			}
-			else
-				over_params--;
 
-		}
-		params_no+=dec_params;
 		//printf("no.ofparameters-->%d\n",params_no);
 		int temp_i=currentSymbolTable->symbolTabList.size()-params_no;
 		symbol * new_func = globalSymbolTable->search(currentSymbolTable->symbolTabList[temp_i-1]->name);
@@ -744,33 +699,33 @@ direct_declarator:      IDENTIFIER {
 			new_func = globalSymbolTable->lookup(currentSymbolTable->symbolTabList[temp_i-1]->name);
 			$$.symTPtr = currentSymbolTable->symbolTabList[temp_i-1];
 			
-			for(int i=0;i<(temp_i-1);i++)
-			{
-				currentSymbolTable->symbolTabList[i]->isValid=false;
-				if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
-				{
-					symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
-					if(glob_var==NULL)
-					{
+			// for(int i=0;i<(temp_i-1);i++)
+			// {
+			// 	currentSymbolTable->symbolTabList[i]->isValid=false;
+			// 	if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
+			// 	{
+			// 		symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
+			// 		if(glob_var==NULL)
+			// 		{
 						
-						glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
-						int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
-						glob_var->offset=globalSymbolTable->offset;
-						glob_var->width=t_size;
-						globalSymbolTable->offset+=t_size;
+			// 			glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
+			// 			int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
+			// 			glob_var->offset=globalSymbolTable->offset;
+			// 			glob_var->width=t_size;
+			// 			globalSymbolTable->offset+=t_size;
 					
-						glob_var->nested=globalSymbolTable;
-						glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
-						glob_var->type=currentSymbolTable->symbolTabList[i]->type;
-						if(currentSymbolTable->symbolTabList[i]->isInitialized)
-						{
-							glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
-							glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
-						}
+			// 			glob_var->nested=globalSymbolTable;
+			// 			glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
+			// 			glob_var->type=currentSymbolTable->symbolTabList[i]->type;
+			// 			if(currentSymbolTable->symbolTabList[i]->isInitialized)
+			// 			{
+			// 				glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
+			// 				glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
+			// 			}
 
-					}
-				}
-			}
+			// 		}
+			// 	}
+			// }
 			if(new_func->var_type == "")
 			{
 				// Declaration of the function for the first time
@@ -804,69 +759,6 @@ direct_declarator:      IDENTIFIER {
 		currentSymbolTable->initQuad = nextInstruction;
 		$$.symTPtr = new_func;
 		$$.type = new symbolType(tp_func);
-	}|
-	direct_declarator '(' identifier_list_opt ')' {
-		int temp_i=currentSymbolTable->symbolTabList.size();
-		symbol * new_func = globalSymbolTable->search(currentSymbolTable->symbolTabList[temp_i-1]->name);
-		if(new_func == NULL)
-		{
-			
-			new_func = globalSymbolTable->lookup(currentSymbolTable->symbolTabList[temp_i-1]->name);
-			$$.symTPtr = currentSymbolTable->symbolTabList[temp_i-1];
-			
-			for(int i=0;i<temp_i-1;i++)
-			{
-				currentSymbolTable->symbolTabList[i]->isValid=false;
-				if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
-				{
-					symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
-					if(glob_var==NULL)
-					{
-						//printf("glob_var-->%s\n",currentSymbolTable->symbolTabList[i]->name.c_str());
-						glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
-						int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
-						
-						glob_var->offset=globalSymbolTable->offset;
-						glob_var->width=t_size;
-						globalSymbolTable->offset+=t_size;
-						
-						glob_var->nested=globalSymbolTable;
-						glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
-						glob_var->type=currentSymbolTable->symbolTabList[i]->type;
-						if(currentSymbolTable->symbolTabList[i]->isInitialized)
-						{
-							glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
-							glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
-						}
-					}
-				}
-			}
-			if(new_func->var_type == "")
-			{
-				/*Function is being declared here for the first time*/
-				new_func->type = CopyType(currentSymbolTable->symbolTabList[temp_i-1]->type);
-				new_func->var_type = "func";
-				new_func->isInitialized = false;
-				new_func->nested = currentSymbolTable;
-				
-				/*Change the first element to retval and change the rest to param*/
-				currentSymbolTable->name = currentSymbolTable->symbolTabList[temp_i-1]->name;
-				currentSymbolTable->symbolTabList[temp_i-1]->name = "retVal";
-				currentSymbolTable->symbolTabList[temp_i-1]->var_type = "return";
-				currentSymbolTable->symbolTabList[temp_i-1]->width = currentSymbolTable->symbolTabList[0]->type->sizeOfType();
-				currentSymbolTable->symbolTabList[temp_i-1]->offset = 0;
-				currentSymbolTable->offset = 16;
-			}
-		}
-		else
-		{
-			// Already declared function. Therefore drop the new table and connect current symbol table pointer to the previously created funciton symbol table
-			currentSymbolTable = new_func->nested;
-			
-		}
-		currentSymbolTable->initQuad = nextInstruction;
-		$$.symTPtr = new_func;
-		$$.type = new symbolType(tp_func);
 	};
 
 type_qualifier_list_opt:        type_qualifier_list {}|
@@ -880,8 +772,7 @@ assignment_expression_opt:      assignment_expression {
 
 	};
 
-identifier_list_opt:    identifier_list   |
-	/*epsilon*/;
+
 
 pointer:    '*' {
 		$$.type = new symbolType(tp_ptr);
@@ -890,10 +781,10 @@ pointer:    '*' {
 type_qualifier_list:    type_qualifier {}|
 	type_qualifier_list type_qualifier {};
 
-parameter_type_list:    parameter_list {
-		/*-------*/
-	}|
-	parameter_list ',' ELLIPSIS {};
+parameter_list_opt:
+	parameter_list{}|
+	;
+
 
 parameter_list:     parameter_declaration {
 		/*---------*/
@@ -909,65 +800,60 @@ parameter_declaration:  type_specifier declarator {
 	}|
 	type_specifier {};
 
-identifier_list :       IDENTIFIER	 |
-		identifier_list ',' IDENTIFIER;
 
 initializer:        assignment_expression {
 		$$ = $1;
 	};
 
 /*Statements*/
-statement:                      
-	compound_statement {
-							$$ = $1;
-						}|
+statement:      compound_statement {
+		$$ = $1;
+	}|
 	expression_statement {
-							$$ = NULL;
-						}|
+		$$ = NULL;
+	}|
 	selection_statement {
-							$$ = $1;
-						}|
+		$$ = $1;
+	}|
 	iteration_statement {
-							$$ = $1;
-						}|
+		$$ = $1;
+	}|
 	jump_statement {
-						$$ = $1;
-						
-					};
+		$$ = $1;
+	};
 
 
-compound_statement:             '{' block_item_list_opt '}' {
+compound_statement:    '{' block_item_list_opt '}' {
 		$$ = $2;
 	};
 
-block_item_list_opt:            block_item_list {
+block_item_list_opt:    block_item_list {
 			$$ = $1;
 		}|
 	/*Epslion*/ {
-		$$ = NULL;
-		
+		$$ = NULL;	
 	};
 
-block_item_list:                block_item {
+block_item_list:     block_item {
 		$$ = $1;
 	}|
 	block_item_list M block_item {
-							backpatch($1,$2);
-							$$ = $3;
-						};
+		backpatch($1,$2);
+		$$ = $3;
+	};
 
-block_item:                     declaration {
+block_item:    declaration {
 		$$ = NULL;
 	}|
 	statement {
 		$$ = $1;
 	};
 
-expression_statement:           expression_opt ';'{
+expression_statement:   expression_opt ';'{
 		$$ = $1;
 	};
 
-expression_opt:                 expression {
+expression_opt:     expression {
 		$$ = $1;
 	}|
 	/*Epslion*/ {
@@ -975,125 +861,124 @@ expression_opt:                 expression {
 		$$.symTPtr = NULL;
 	};
 
-selection_statement:            IF '(' expression N ')' M statement N ELSE M statement {
-																							/*N1 is used for falselist of expression, M1 is used for truelist of expression, N2 is used to prevent fall through, M2 is used for falselist of expression*/
-																							$7 = merge($7,$8);
-													
-																							$11 = merge($11,makelist(nextInstruction));
-																							globalQuadArray.emit(Q_GOTO,"-1");
-																							backpatch($4,nextInstruction);
-																							
-																							CONV2BOOL(&$3);
+selection_statement:    IF '(' expression N ')' M statement N ELSE M statement {
+		/*N1 is used for falselist of expression, M1 is used for truelist of expression, N2 is used to prevent fall through, M2 is used for falselist of expression*/
+		$7 = merge($7,$8);
 
-																							backpatch($3.truelist,$6);
-																							backpatch($3.falselist,$10);
-																							$$ = merge($7,$11);
-																						}|
-								IF '(' expression N ')' M statement %prec IF_CONFLICT{
-																		/*N is used for the falselist of expression to skip the block and M is used for truelist of expression*/
-																		$7 = merge($7,makelist(nextInstruction));
-																		globalQuadArray.emit(Q_GOTO,"-1");
-																		backpatch($4,nextInstruction);
-																		CONV2BOOL(&$3);
-																		
-																		backpatch($3.truelist,$6);
-																		$$ = merge($7,$3.falselist);
-																	};
+		$11 = merge($11,makelist(nextInstruction));
+		globalQuadArray.emit(Q_GOTO,"-1");
+		backpatch($4,nextInstruction);
+		
+		CONV2BOOL(&$3);
 
-iteration_statement:            FOR '(' expression_opt ';' M expression_opt N ';' M expression_opt N ')' M statement {
-																													   /*M1 is used for coming back to check the epression at every iteration. N1 is used  for generating the goto which will be used for exit conditions. M2 is used for _nextlist of statement and N2 is used for jump to check the expression and M3 is used for the truelist of expression*/
-																														backpatch($11,$5);          /*N2._nextlist to M1._instruction*/
-																														backpatch($14,$9);          /*S._nextlist to M2._instruction*/
-																														globalQuadArray.emit(Q_GOTO,$9);
-																														
-																														backpatch($7,nextInstruction);    /*N1._nextlist to nextInstruction*/
-																														CONV2BOOL(&$6);
-																														
-																														backpatch($6.truelist,$13);
-																														$$ = $6.falselist;
-																													}|
-								FOR '(' declaration expression_opt ';' expression_opt ')' statement {};
+		backpatch($3.truelist,$6);
+		backpatch($3.falselist,$10);
+		$$ = merge($7,$11);
+	}|
+	IF '(' expression N ')' M statement %prec IF_CONFLICT{
+		/*N is used for the falselist of expression to skip the block and M is used for truelist of expression*/
+		$7 = merge($7,makelist(nextInstruction));
+		globalQuadArray.emit(Q_GOTO,"-1");
+		backpatch($4,nextInstruction);
+		CONV2BOOL(&$3);
+		
+		backpatch($3.truelist,$6);
+		$$ = merge($7,$3.falselist);
+	};
 
-jump_statement:                 
-								RETURN expression_opt ';' {
-																if($2.symTPtr == NULL)
-																	globalQuadArray.emit(Q_RETURN);
-																else
-																{
-																	expression * dummy = new expression();
-																	dummy->symTPtr = currentSymbolTable->symbolTabList[0];
-																	dummy->type = dummy->symTPtr->type;
-																	typecheck(dummy,&$2,true);
-																	
-																	delete dummy;
-																	globalQuadArray.emit(Q_RETURN,$2.symTPtr->name);
-																}
-																$$=NULL;
-														  };
+iteration_statement:    FOR '(' expression_opt ';' M expression_opt N ';' M expression_opt N ')' M statement {
+		/*M1 is used for coming back to check the epression at every iteration. N1 is used  for generating the goto which will be used for exit conditions. M2 is used for _nextlist of statement and N2 is used for jump to check the expression and M3 is used for the truelist of expression*/
+		backpatch($11,$5);          /*N2._nextlist to M1._instruction*/
+		backpatch($14,$9);          /*S._nextlist to M2._instruction*/
+		globalQuadArray.emit(Q_GOTO,$9);
+		
+		backpatch($7,nextInstruction);    /*N1._nextlist to nextInstruction*/
+		CONV2BOOL(&$6);
+		
+		backpatch($6.truelist,$13);
+		$$ = $6.falselist;
+	}|
+	FOR '(' declaration expression_opt ';' expression_opt ')' statement {};
+
+jump_statement:     RETURN expression_opt ';' {
+		if($2.symTPtr == NULL)
+			globalQuadArray.emit(Q_RETURN);
+		else
+		{
+			expression * dummy = new expression();
+			dummy->symTPtr = currentSymbolTable->symbolTabList[0];
+			dummy->type = dummy->symTPtr->type;
+			typecheck(dummy,&$2,true);
+			
+			delete dummy;
+			globalQuadArray.emit(Q_RETURN,$2.symTPtr->name);
+		}
+		$$=NULL;
+	};
 
 /*External Definitions*/
-translation_unit:               external_declaration                                    |
-								translation_unit external_declaration                   ;
+translation_unit:               external_declaration   |
+	translation_unit external_declaration;
 
-external_declaration:           function_definition                                     |
-								declaration      {
-									for(int i=0;i<currentSymbolTable->symbolTabList.size();i++)
-									{
-										if(currentSymbolTable->symbolTabList[i]->nested==NULL)
-										{
-											
-											if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
-											{
-												symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
-												if(glob_var==NULL)
-												{
-													glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
-													int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
-													glob_var->offset=globalSymbolTable->offset;
-													
-													glob_var->width=t_size;
-													globalSymbolTable->offset+=t_size;
-													glob_var->nested=globalSymbolTable;
-													
-													glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
-													glob_var->type=currentSymbolTable->symbolTabList[i]->type;
-													if(currentSymbolTable->symbolTabList[i]->isInitialized)
-													{
-														glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
-														glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
-													}
-												}
-											}
-										}
-									}
-								};
+external_declaration:       function_definition  |
+	declaration      {
+		for(int i=0;i<currentSymbolTable->symbolTabList.size();i++)
+		{
+			if(currentSymbolTable->symbolTabList[i]->nested==NULL)
+			{
+				
+				if(currentSymbolTable->symbolTabList[i]->var_type=="local"||currentSymbolTable->symbolTabList[i]->var_type=="temp")
+				{
+					symbol *glob_var=globalSymbolTable->search(currentSymbolTable->symbolTabList[i]->name);
+					if(glob_var==NULL)
+					{
+						glob_var=globalSymbolTable->lookup(currentSymbolTable->symbolTabList[i]->name);
+						int t_size=currentSymbolTable->symbolTabList[i]->type->sizeOfType();
+						glob_var->offset=globalSymbolTable->offset;
+						
+						glob_var->width=t_size;
+						globalSymbolTable->offset+=t_size;
+						glob_var->nested=globalSymbolTable;
+						
+						glob_var->var_type=currentSymbolTable->symbolTabList[i]->var_type;
+						glob_var->type=currentSymbolTable->symbolTabList[i]->type;
+						if(currentSymbolTable->symbolTabList[i]->isInitialized)
+						{
+							glob_var->isInitialized=currentSymbolTable->symbolTabList[i]->isInitialized;
+							glob_var->_init_val=currentSymbolTable->symbolTabList[i]->_init_val;
+						}
+					}
+				}
+			}
+		}
+	};
 
 function_definition:    type_specifier declarator declaration_list_opt compound_statement {
-																									symbol * func = globalSymbolTable->lookup($2.symTPtr->name);
-																									//printf("Hello2\n");
-																									func->nested->symbolTabList[0]->type = CopyType(func->type);
-																									func->nested->symbolTabList[0]->name = "retVal";
-																									
-																									func->nested->symbolTabList[0]->offset = 0;
-																									//If return type is pointer then change the offset
-																									if(func->nested->symbolTabList[0]->type->type == tp_ptr)
-																									{
-																										int diff = __POINTER_SIZE - func->nested->symbolTabList[0]->width;
-																										func->nested->symbolTabList[0]->width = __POINTER_SIZE;
-																										for(int i=1;i<func->nested->symbolTabList.size();i++)
-																										{
-																											func->nested->symbolTabList[i]->offset += diff;
-																										}
-																									}
-																									int offset_size = 0;
-																									for(int i=0;i<func->nested->symbolTabList.size();i++)
-																									{
-																										offset_size += func->nested->symbolTabList[i]->width;
-																									}
-																									func->nested->lastQuad = nextInstruction-1;
-																									//Create a new Current Symbol Table
-																									currentSymbolTable = new symbolTable();
-																								};
+		symbol * func = globalSymbolTable->lookup($2.symTPtr->name);
+		//printf("Hello2\n");
+		func->nested->symbolTabList[0]->type = CopyType(func->type);
+		func->nested->symbolTabList[0]->name = "retVal";
+		
+		func->nested->symbolTabList[0]->offset = 0;
+		//If return type is pointer then change the offset
+		if(func->nested->symbolTabList[0]->type->type == tp_ptr)
+		{
+			int diff = __POINTER_SIZE - func->nested->symbolTabList[0]->width;
+			func->nested->symbolTabList[0]->width = __POINTER_SIZE;
+			for(int i=1;i<func->nested->symbolTabList.size();i++)
+			{
+				func->nested->symbolTabList[i]->offset += diff;
+			}
+		}
+		int offset_size = 0;
+		for(int i=0;i<func->nested->symbolTabList.size();i++)
+		{
+			offset_size += func->nested->symbolTabList[i]->width;
+		}
+		func->nested->lastQuad = nextInstruction-1;
+		//Create a new Current Symbol Table
+		currentSymbolTable = new symbolTable();
+};
 
 declaration_list_opt:   declaration_list                                        |
 	/*epsilon*/                                             ;

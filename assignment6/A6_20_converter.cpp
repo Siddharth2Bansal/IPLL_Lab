@@ -343,14 +343,18 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
         if (flag1 == 0) {
             if (findGlobal(arg1x) == 2)
                 sfile << "\n\tmovzbl\t" << arg1x << "(%rip), %eax";
-            else
+            else if(globalSymbolTable->search(arg1x)->type->type == tp_int)
                 sfile << "\n\tmovl\t" << arg1x << "(%rip), %eax";
+            else 
+                sfile << "\n\tmovq\t" << arg1x << "(%rip), %rax";
         }
         if (flag2 == 0) {
             if (findGlobal(arg1x) == 2)
                 sfile << "\n\tmovzbl\t" << arg2x << "(%rip), %edx";
-            else
+            else if(globalSymbolTable->search(arg1x)->type->type == tp_int)
                 sfile << "\n\tmovl\t" << arg2x << "(%rip), %edx";
+            else 
+                sfile << "\n\tmovq\t" << arg2x << "(%rip), %rdx";
         }
         if (mp_set.find(i) != mp_set.end()) {
             // Generate Label here
@@ -546,24 +550,33 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             {
                 if(search(resx)->type->type == tp_int)
                 {
-                    sfile << "\n\tmovl\t" << arg1x << "(%rip), %eax";
                     sfile << "\n\tmovl\t%eax, " << offr << "(%rbp)";                    
                 }
                 else // if pointer
                 {
-                sfile << "\n\tmovq\t" << arg1x << "(%rip), %rax";
                 sfile << "\n\tmovq\t%rax, " << offr << "(%rbp)";
                 }
             }
             else
             {
+                if(flag1 && search(arg1x)->type->type == tp_int) // arg1 inside and int
+                {
                     sfile << "\n\tmovl\t" << off1 << "(%rbp), %eax";
-                // if (flag3 != 0)
-                // {
-                //     sfile << "\n\tmovl\t%eax, " << offr << "(%rbp)";
-                // }
-                //else
-                    sfile << "\n\tmovl\t%eax, " << resx << "(%rip)";
+                    sfile << "\n\tmovl\t%eax, " << resx << "(%rip)";                    
+                }
+                else if(flag1 && search(arg1x)->type->type == tp_int) // arg1 inside and pointer
+                {
+                sfile << "\n\tmovq\t" << off1 << "(%rbp), %rax";
+                sfile << "\n\tmovq\t%rax, " << resx << "(%rip)";
+                }
+                else if(globalSymbolTable->search(arg1x)->type->type == tp_int)  // arg1 outside and int
+                {
+                sfile << "\n\tmovl\t%eax, " << resx << "(%rip)";
+                }
+                else // arg1 outside and pointer
+                {
+                sfile << "\n\tmovq\t%rax, " << resx << "(%rip)";
+                }
             }
             break;
         case Q_PARAM:

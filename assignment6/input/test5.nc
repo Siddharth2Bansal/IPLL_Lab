@@ -1,9 +1,10 @@
-int ar[10];
+int arr[3];
 
 int main()
 {
-    ar[0] = 3;
-    int x = ar[0];
+    arr[2] = 5;
+    arr[0] = 6;
+    int x = arr[2];
     printInt(x);
     return 0;
 }

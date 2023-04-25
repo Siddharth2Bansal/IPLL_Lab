@@ -63,7 +63,15 @@ void symbolTable::globalVar(std::ofstream &sfile) {
     while (i < symbolTabList.size())
     {
         if (symbolTabList[i]->name[0] != 't' && symbolTabList[i]->type != NULL && symbolTabList[i]->var_type != "func") {
-            if (symbolTabList[i]->type->type == tp_int) {
+            if (symbolTabList[i]->type->type == tp_arr) {
+                int size = symbolTabList[i]->type->sizeOfType();
+                if (symbolTabList[i]->type->next->type == tp_int) {
+                    vs.push_back(symbolTabList[i]->name);
+                    if (symbolTabList[i]->isInitialized == false)
+                        sfile << "\n\t.comm\t" << symbolTabList[i]->name << "," << size << ",4";
+                }
+            }
+            else    if (symbolTabList[i]->type->type == tp_int) {
                 vs.push_back(symbolTabList[i]->name);
                 if (symbolTabList[i]->isInitialized == false)
                     sfile << "\n\t.comm\t" << symbolTabList[i]->name << ",4,4";
@@ -343,9 +351,9 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
         if (flag1 == 0) {
             if (findGlobal(arg1x) == 2)
                 sfile << "\n\tmovzbl\t" << arg1x << "(%rip), %eax";
-            else if(globalSymbolTable->search(arg1x)->type->type == tp_int)
+            else if(globalSymbolTable->search(arg1x)->type != NULL && globalSymbolTable->search(arg1x)->type->type == tp_int)
                 sfile << "\n\tmovl\t" << arg1x << "(%rip), %eax";
-            else 
+            else if(globalSymbolTable->search(arg1x)->type != NULL && globalSymbolTable->search(arg1x)->type->type != tp_arr)
                 sfile << "\n\tmovq\t" << arg1x << "(%rip), %rax";
         }
         if (flag2 == 0) {
@@ -730,7 +738,7 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             break;
         case Q_RINDEX:
             // Get Address, subtract offset, get memory
-            if (search(arg1x) && search(arg1x)->isPointerArray == true)
+            if (search(arg1x))
             {
                 sfile << "\n\tmovq\t" << off1 << "(%rbp), %rdx";
                 sfile << "\n\tmovslq\t" << off2 << "(%rbp), %rax";
@@ -738,7 +746,7 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             }
             else
             {
-                sfile << "\n\tleaq\t" << off1 << "(%rbp), %rdx";
+                sfile << "\n\tleaq\t" << arg1x << "(%rip), %rdx";
 
                 sfile << "\n\tmovslq\t" << off2 << "(%rbp), %rax";
                 sfile << "\n\taddq\t%rax, %rdx";
@@ -756,16 +764,15 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             break;
         case Q_LINDEX:
             // Get Address, subtract offset, get memory
-            if (search(resx) && search(resx)->isPointerArray == true)
+            if (search(resx))
             {
                 sfile << "\n\tmovq\t" << offr << "(%rbp), %rdx";
-
                 sfile << "\n\tmovslq\t" << off1 << "(%rbp), %rax";
                 sfile << "\n\taddq\t%rax, %rdx";
             }
             else
             {
-                sfile << "\n\tleaq\t" << offr << "(%rbp), %rdx";
+                sfile << "\n\tleaq\t" << resx << "(%rip), %rdx";
                 sfile << "\n\tmovslq\t" << off1 << "(%rbp), %rax";
                 sfile << "\n\taddq\t%rax, %rdx";
             }

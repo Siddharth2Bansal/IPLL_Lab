@@ -58,6 +58,7 @@ extern string loop_name;
 extern vector<Label>label_table;          
 extern string id;
 // Label symbol 
+// used in making a new table and in GOTO statements
 class Label                                                                                
 {
 public:
@@ -70,6 +71,7 @@ public:
 
 
 // Structure of any element of the symbol table
+// nested is used for functions to point to the symbol table of the function
 class Symbol 
 {                                                                                          
 public:
@@ -86,6 +88,8 @@ public:
 };
 
 //symbol type class
+// stores symbol type and size of array if found
+// also used for storing complex data types like arrays and pointers
 class SymbolType 
 {                                                                                           
 public:
@@ -99,7 +103,10 @@ public:
 
 
 // The actual Symbol Table
-
+// parent is the pointer to the parent symbol table
+// lookup is used to search for a symbol in the symbol table
+// LookupDeclarator creates a new symbol table entry if not found
+// lookupIdentifier returns null if not found
 class SymbolTable 
 {                                                                                           
 public:
@@ -147,7 +154,8 @@ public:
 struct Expression {
     // pointer to the symbol table entry
     s* loc;                                                                                  
-    string type;                                                                             
+    string type;      
+    // the lists below store elements for backpatching                                                                        
     list<int> truelist;                                                                     
     list<int> falselist;                                                                   
     list<int> nextlist;                                                                      
@@ -155,7 +163,7 @@ struct Expression {
 
 //  array type
 struct Array {
-    //either ptr or array
+    //either ptr or array or bool_pass
     string atype;        
     // Location used to compute address of Array                                                                    
     s* loc;      
@@ -174,17 +182,20 @@ string convertFloatToString(float);
 Exps convertIntToBool(Exps);                                                                 
 int convertBoolToInt(Exps);  
 
+// Emit functions creates the quads and stores them in the quad array
 //Overloaded emit functions
 void emit(string , string , string arg1="", string arg2 = "");  
 void emit(string , string , int, string arg2 = "");		  
 void emit(string , string , float , string arg2 = "");   
 
-//generates a temporary variable in a sybol table and return a ponter to it
+//generates a temporary variable in a sybol table and return a pointer to it
 s* gentemp (SymbolType* , string init = "");
 
 //  Backpatching
-void backpatch (list <int> , int );                                                           
+// sets the result of all the GOTOs in the lists to the given label
+void backpatch (list <int> , int );                                
 list<int> makelist (int );                                                                   
+// merges the lists and returns the merged list                           
 list<int> merge (list<int> &l1, list <int> &l2);                                             
 
 //  Other helper functions required for TAC generation

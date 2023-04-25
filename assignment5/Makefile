@@ -3,7 +3,7 @@ MAKEFLAGS += -s
 RM = rm -f
 MAIN = A5_20
 CC = g++
-TESTS = 1
+TESTS = 1 2 3 4 5
 .PHONY: run
 
 run: a.out 

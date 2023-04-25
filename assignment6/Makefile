@@ -1,9 +1,13 @@
+MAKEFLAGS += -s
 MAIN := A6_20
 INPUT_DIR:= input
 OUTPUT_DIR:= output
 QUAD_DIR := quads
 EXEC_DIR:= exec
+ASSEMBLY_DIR := assembly
+
 .PHONY: test
+TEST_CASES := $(wildcard $(INPUT_DIR)/*.nc)
 
 nanoC: y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o 
 	@g++ -no-pie -g $(MAIN)_translator.o $(MAIN)_converter.o lex.yy.o y.tab.o -lfl -o nanoC
@@ -27,16 +31,13 @@ y.tab.o:    y.tab.c
 	@g++ -no-pie -g -DYYDEBUG -c y.tab.c
 
 libmyl.a: myl.o
+	cc    -c -o myl.o myl.c
 	@ar -rcs libmyl.a myl.o
 
-ass2_16CS10053.o: myl.c myl.h
-	@g++ -no-pie -Wall  -c myl.c
 
 clean:
-	@rm *.s \
-	lex.yy.c y.tab.h y.output y.tab.c lex.yy.o y.tab.o \
-	*.o libmyl.a \
-	*.out nanoC
+	@rm -f *.s  lex.yy.c y.tab.h y.output y.tab.c  *.o libmyl.a  *.out nanoC
+	rm -rf $(QUAD_DIR) $(EXEC_DIR) $(OUTPUT_DIR) $(ASSEMBLY_DIR)
 
 
 test1: $(MAIN)_test1.o libmyl.a
@@ -65,48 +66,21 @@ test5: $(MAIN)_test5.o libmyl.a
 $(MAIN)_test5.o: $(MAIN)_test5.s myl.h
 	@gcc -no-pie -g -Wall -c $(MAIN)_test5.s
 
-#output: output.o
-output: output.o libmyl.a
-	@gcc -no-pie -g  output.o -o output -L. -lmyl
-output.o: output.s myl.h
-	@gcc -no-pie -g -Wall -c output.s
 
-run: 
+run:  libmyl.a
 	mkdir -p $(QUAD_DIR)
-	@echo 1 rn
-	@./nanoC < ./$(INPUT_DIR)/test1.nc > ./$(QUAD_DIR)/quad1.out
-	
-	@mv output.s $(MAIN)_test1.s
-	
-	@make test1
-	@echo 2 rn
-	@./nanoC < ./$(INPUT_DIR)/test2.nc > ./$(QUAD_DIR)/quad2.out
+	mkdir -p $(ASSEMBLY_DIR)
+	mkdir -p $(EXEC_DIR)
+	mkdir -p $(OUTPUT_DIR)
 
-	@mv output.s $(MAIN)_test2.s
-	
-	@make test2
-	@echo 3 rn
-	@./nanoC < ./$(INPUT_DIR)/test3.nc > ./$(QUAD_DIR)/quad3.out
-
-	@mv output.s $(MAIN)_test3.s
-
-	@make test3
-	@echo 4 rn
-	@./nanoC < ./$(INPUT_DIR)/test4.nc > ./$(QUAD_DIR)/quad4.out
-	
-	@mv output.s $(MAIN)_test4.s
-
-	@make test4
-	@echo 5 rn
-	@./nanoC < ./$(INPUT_DIR)/test5.nc > ./$(QUAD_DIR)/quad5.out
-	
-	@mv output.s $(MAIN)_test5.s
-
-	@make test5
-	@echo ""
-	@echo "Commands for Test Cases"
-	@echo "Test Case 1 : Calculate Interest    Command : ./test1"
-	@echo "Test Case 2 : Palindrome or Not     Command : ./test2"
-	@echo "Test Case 3 : Sum of Digits         Command : ./test3"
-	@echo "Test Case 4 : Longest Common Subse. Command : ./test4"
-	@echo "Test Case 5 : Merge Sort            Command : ./test5"
+	$(foreach test_case,$(TEST_CASES),\
+		echo starting test case $$(basename $(test_case) .nc); \
+        ./nanoC < $(test_case) > $(QUAD_DIR)/$$(basename $(test_case) .nc).out; \
+        mv output.s ./$(ASSEMBLY_DIR)/$$(basename $(test_case) .nc).s; \
+		echo assembly file $(ASSEMBLY_DIR)/$$(basename $(test_case) .nc).s made; \
+		echo compiling .o file $$(basename $(test_case) .nc).o; \
+		gcc -no-pie -g -Wall -c ./$(ASSEMBLY_DIR)/$$(basename $(test_case) .nc).s -o ./$(OUTPUT_DIR)/$$(basename $(test_case) .nc).o; \
+		gcc -no-pie -g  ./$(OUTPUT_DIR)/$$(basename $(test_case) .nc).o -o ./$(EXEC_DIR)/$$(basename $(test_case) .nc) -L. -lmyl; \
+		echo executable file for $$(basename $(test_case) .nc) made, to run, use command ./$(EXEC_DIR)/$$(basename $(test_case) .nc); \
+		echo; \
+    )

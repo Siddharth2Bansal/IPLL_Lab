@@ -788,16 +788,19 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             }
             break;
         case Q_RETURN:
-            if (resx != "")
+            if(search("retVal")->type->type != tp_void)
             {
-                if (search(resx) != NULL && search(resx)->type != NULL && search(resx)->type->type == tp_char)
-                    sfile << "\n\tmovzbl\t" << offr << "(%rbp), %eax";
+                if (resx != "")
+                {
+                    if (search(resx) != NULL && search(resx)->type != NULL && search(resx)->type->type == tp_char)
+                        sfile << "\n\tmovzbl\t" << offr << "(%rbp), %eax";
+                    else
+                        sfile << "\n\tmovl\t" << offr << "(%rbp), %eax";
+                }
                 else
-                    sfile << "\n\tmovl\t" << offr << "(%rbp), %eax";
+                    sfile << "\n\tmovl\t$0, %eax";
+                sfile << "\n\tjmp\t.LRT" << ret_count;
             }
-            else
-                sfile << "\n\tmovl\t$0, %eax";
-            sfile << "\n\tjmp\t.LRT" << ret_count;
             break;
         default:
             break;
@@ -806,6 +809,11 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
 }
 
 void symbolTable::function_epilogue(std::ofstream &sfile, int count, int ret_count) {
+    if(search("retVal")->type->type == tp_void)
+    {
+        sfile << "\n\tmovl\t$0, %eax";
+        sfile << "\n\tjmp\t.LRT" << ret_count;
+    }
     sfile << "\n.LRT" << ret_count << ":";
     sfile << "\n\taddq\t$" << -1*offset << ", %rsp";
     sfile << "\n\tmovq\t%rbp, %rsp";

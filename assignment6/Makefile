@@ -9,6 +9,8 @@ ASSEMBLY_DIR := assembly
 .PHONY: test
 TEST_CASES := $(wildcard $(INPUT_DIR)/*.nc)
 
+default: run
+
 nanoC: y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o 
 	@g++ -no-pie -g $(MAIN)_translator.o $(MAIN)_converter.o lex.yy.o y.tab.o -lfl -o nanoC
 
@@ -41,7 +43,7 @@ clean:
 
 
 
-run:  libmyl.a
+run:  nanoC libmyl.a 
 	mkdir -p $(QUAD_DIR)
 	mkdir -p $(ASSEMBLY_DIR)
 	mkdir -p $(EXEC_DIR)

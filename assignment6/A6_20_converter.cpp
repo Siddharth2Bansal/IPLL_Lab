@@ -740,7 +740,7 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             // Get Address, subtract offset, get memory
             if (search(arg1x))
             {
-                sfile << "\n\tmovq\t" << off1 << "(%rbp), %rdx";
+                sfile << "\n\tleaq\t" << off1 << "(%rbp), %rdx";
                 sfile << "\n\tmovslq\t" << off2 << "(%rbp), %rax";
                 sfile << "\n\taddq\t%rax, %rdx";
             }
@@ -766,7 +766,7 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             // Get Address, subtract offset, get memory
             if (search(resx))
             {
-                sfile << "\n\tmovq\t" << offr << "(%rbp), %rdx";
+                sfile << "\n\tleaq\t" << offr << "(%rbp), %rdx";
                 sfile << "\n\tmovslq\t" << off1 << "(%rbp), %rax";
                 sfile << "\n\taddq\t%rax, %rdx";
             }

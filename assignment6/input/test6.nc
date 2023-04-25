@@ -1,10 +1,8 @@
-// Add two numbers from input
+// Add two numbers
 int main() {
-int x;
-int y;
+int x = 2;
+int y = 3;
 int z;
-readInt(&x);
-readInt(&y);
 z = x + y;
 printInt(x);
 printStr("+");

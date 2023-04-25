@@ -17,7 +17,7 @@ int main()
         z = 4;
     }
     printInt(z);
-    if (y >= 2 && x != 0 && z == 4)
+    if (!(y <= 2) && x != 0 && z == 4)
     {
         z = 5;
     }

@@ -21,13 +21,11 @@
 }
 
 //All tokens
-%token BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE EXTERN FLOAT FOR GOTO IF INLINE INT LONG RESTRICT RETURN SHORT SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION VOID VOLATILE WHILE
-%token ARROW DECREMENT INCREMENT RIGHT_SHIFT LEFT_SHIFT GREATER_THAN_EQUAL LESS_THAN_EQUAL NOT_EQUAL EQUALITY OR AND ELLIPSIS PLUS_EQUAL MINUS_EQUAL MULTIPLY_EQUAL MOD_EQUAL DIVIDE_EQUAL AND_EQUAL OR_EQUAL XOR_EQUAL RIGHT_SHIFT_EQUAL LEFT_SHIFT_EQUAL
+%token ELSE FOR  IF  INT RETURN VOID
+%token GREATER_THAN_EQUAL LESS_THAN_EQUAL NOT_EQUAL EQUALITY OR AND 
 %token WHITESPACE COMMENT
 
 %token <_int_value> INTEGER_CONSTANT
-%token <_float_value> FLOATING_CONSTANT
-%token <_char_value> CHAR_CONST
 %token <_string_literal> STRING_LITERAL
 
 // Non-terminals of type expression (denoting expressions)
@@ -559,11 +557,8 @@ assignment_expression:      conditional_expression {
 		$$ = $1;
 	}|
 	unary_expression '=' assignment_expression {
-		//LDereferencing
-		//printf("hoboo --> %s\n",$1.symTPtr->name.c_str());
 		if($1.isPointer)
 		{
-			//printf("Hookah bar\n");
 			
 			globalQuadArray.emit(Q_LDEREF,$3.symTPtr->name,$1.symTPtr->name);
 		}
@@ -577,9 +572,6 @@ assignment_expression:      conditional_expression {
 			globalQuadArray.emit(Q_ASSIGN,$3.symTPtr->name,$1.symTPtr->name);
 		$$.symTPtr = $3.symTPtr;
 		$$.type = $$.symTPtr->type;
-		//printf("assgi hobobob %s == %s\n",)
-		
-		//printf("assign %s = %s\n",$3.symTPtr->name.c_str(),$$.symTPtr->name.c_str());
 	};
 
 expression :    assignment_expression {
@@ -617,15 +609,12 @@ init_declarator:    declarator {
 				symbol *temp_ver=currentSymbolTable->search($1.symTPtr->name);
 				if(temp_ver!=NULL)
 				{
-				//printf("po %s = %s\n",$1.symTPtr->name.c_str(),$3.symTPtr->name.c_str());
 				temp_ver->_init_val._INT_INITVAL= $3.symTPtr->_init_val._INT_INITVAL;
 				
 				temp_ver->isInitialized = true;
 				}
 			}
 		}
-		//printf("%s = %s\n",$1.symTPtr->name.c_str(),$3.symTPtr->name.c_str());
-		//typecheck(&$1,&$3,true);
 		globalQuadArray.emit(Q_ASSIGN,$3.symTPtr->name,$1.symTPtr->name);
 	};
 
@@ -693,7 +682,6 @@ direct_declarator:      IDENTIFIER {
 			//Type initialization
 			$$.symTPtr->var_type = "local";
 			$$.symTPtr->type = new symbolType(globalType->type);
-			//$$.symTPtr->type->print();
 		}
 		$$.type = $$.symTPtr->type;
 	}|
@@ -707,18 +695,15 @@ direct_declarator:      IDENTIFIER {
 	}|
 	direct_declarator '(' parameter_list_opt ')' {
 		int params_no=currentSymbolTable->emptyArgList;
-		//printf("no.ofparameters-->%d\n",params_no);
 		currentSymbolTable->emptyArgList=0;
 		int dec_params=0;
 		
 		int over_params=params_no;
 		for(int i=currentSymbolTable->symbolTabList.size()-1;i>=0;i--)
 		{
-			//printf("what-->%s\n",currentSymbolTable->symbolTabList[i]->name.c_str());
 		}
 		for(int i=currentSymbolTable->symbolTabList.size()-1;i>=0;i--)
 		{
-			//printf("mazaknaminST-->%s\n",currentSymbolTable->symbolTabList[i]->name.c_str());
 			string detect=currentSymbolTable->symbolTabList[i]->name;
 			if(over_params==0)
 			{
@@ -743,7 +728,6 @@ direct_declarator:      IDENTIFIER {
 				over_params--;
 		}
 		params_no+=dec_params;
-		//printf("no.ofparameters-->%d\n",params_no);
 		int temp_i=currentSymbolTable->symbolTabList.size()-params_no;
 		symbol * new_func = globalSymbolTable->search(currentSymbolTable->symbolTabList[temp_i-1]->name);
 	
@@ -982,7 +966,6 @@ external_declaration:       function_definition  |
 
 function_definition:    type_specifier declarator compound_statement {
 		symbol * func = globalSymbolTable->lookup($2.symTPtr->name);
-		//printf("Hello2\n");
 		func->nested->symbolTabList[0]->type = CopyType(func->type);
 		func->nested->symbolTabList[0]->name = "retVal";
 		

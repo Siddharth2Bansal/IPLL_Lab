@@ -9,7 +9,6 @@ ASSEMBLY_DIR := assembly
 .PHONY: test
 TEST_CASES := $(wildcard $(INPUT_DIR)/*.nc)
 
-default: run
 
 nanoC: y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o 
 	@g++ -no-pie -g $(MAIN)_translator.o $(MAIN)_converter.o lex.yy.o y.tab.o -lfl -o nanoC

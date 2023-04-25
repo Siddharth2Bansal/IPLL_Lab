@@ -55,7 +55,7 @@ void symbolTable::function_prologue(std::ofstream &sfile, int count) {
     sfile << "\n.LFB" << count << ":";
     sfile << "\n\tpushq\t%rbp";
     sfile << "\n\tmovq\t%rsp, %rbp";
-    sfile << "\n\tsubq\t$" << -offset << ", %rsp";
+    sfile << "\n\tsubq\t$" << -1*offset << ", %rsp";
 }
 
 void symbolTable::globalVar(std::ofstream &sfile) {
@@ -522,8 +522,9 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
             // Check if the second argument is a constant
             if (arg1x[0] >= '0' && arg1x[0] <= '9') // first character is number
                 sfile << "\n\tmovl\t$" << arg1x << ", " << offr << "(%rbp)";
-            else if (arg1x[0] == '\'')
+            else if (arg1x[0] == '\'') // first is a char, not used
                 sfile << "\n\tmovb\t$" << (int)arg1x[1] << ", " << offr << "(%rbp)";
+                //useless next line
             else if (flag1 && search(resx) != NULL && search(resx)->type != NULL && search(resx)->type->type == tp_char)
             {
                 sfile << "\n\tmovzbl\t" << off1 << "(%rbp), %eax";
@@ -535,19 +536,33 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
                 sfile << "\n\tmovl\t" << off1 << "(%rbp), %eax";
                 sfile << "\n\tmovl\t%eax, " << offr << "(%rbp)";
             }
-            else if (search(resx) != NULL && search(resx)->type != NULL)
+            else if (flag1 && search(resx) != NULL && search(resx)->type != NULL && search(resx)->type->type == tp_ptr)
             {
+
                 sfile << "\n\tmovq\t" << off1 << "(%rbp), %rax";
                 sfile << "\n\tmovq\t%rax, " << offr << "(%rbp)";
             }
+            else if (search(resx) != NULL && search(resx)->type != NULL)
+            {
+                if(search(resx)->type->type == tp_int)
+                {
+                    sfile << "\n\tmovl\t" << arg1x << "(%rip), %eax";
+                    sfile << "\n\tmovl\t%eax, " << offr << "(%rbp)";                    
+                }
+                else // if pointer
+                {
+                sfile << "\n\tmovq\t" << arg1x << "(%rip), %rax";
+                sfile << "\n\tmovq\t%rax, " << offr << "(%rbp)";
+                }
+            }
             else
             {
-                if (flag3 != 0)
-                {
                     sfile << "\n\tmovl\t" << off1 << "(%rbp), %eax";
-                    sfile << "\n\tmovl\t%eax, " << offr << "(%rbp)";
-                }
-                else
+                // if (flag3 != 0)
+                // {
+                //     sfile << "\n\tmovl\t%eax, " << offr << "(%rbp)";
+                // }
+                //else
                     sfile << "\n\tmovl\t%eax, " << resx << "(%rip)";
             }
             break;
@@ -772,7 +787,7 @@ void symbolTable::generateTargetCode(std::ofstream &sfile, int ret_count) {
 
 void symbolTable::function_epilogue(std::ofstream &sfile, int count, int ret_count) {
     sfile << "\n.LRT" << ret_count << ":";
-    sfile << "\n\taddq\t$" << offset << ", %rsp";
+    sfile << "\n\taddq\t$" << -1*offset << ", %rsp";
     sfile << "\n\tmovq\t%rbp, %rsp";
     sfile << "\n\tpopq\t%rbp";
     sfile << "\n\tret";

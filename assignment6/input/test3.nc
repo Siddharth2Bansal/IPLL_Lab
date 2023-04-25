@@ -1,18 +1,10 @@
-// Add two numbers from input
 
-
-int main() {
-int x;
-int y;
-int z;
-x = readInt(&z);
-y = readInt(&z);
-z = x + y;
-printInt(x);
-printStr("+");
-printInt(y);
-printStr(" = ");
-printInt(z);
-return 0;
+ int ar = 4;
+int main()
+{
+    int x = 7;
+    x = ar;
+    int h = 0;
+    printInt(x);
+    return 0;
 }
-

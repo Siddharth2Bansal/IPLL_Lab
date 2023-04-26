@@ -8,7 +8,8 @@ This assignment contains the Bison code to translate a nanoC program into an arr
 
 A5_20.y contains the bison specifications of nanoC.
 A5_20.l contains the flex specifications required to run the bison file.
-A5_20.c contains the main function which uses the bison/lex library. 
+A5_20_translator.h is the header file containing the declarations of the data structures.
+A5_20_translator.c contains the main function which uses the bison/lex library and the implementation of the data strutures. 
 Makefile contains the commands to generate the required tab files and the executable file and to run them.
 
 ## To run the file

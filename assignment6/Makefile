@@ -5,9 +5,9 @@ OUTPUT_DIR:= output
 QUAD_DIR := quads
 EXEC_DIR:= exec
 ASSEMBLY_DIR := assembly
+TEST_CASES := 1 2 3 4 5 6 7 8 9 10 11 12 14
 
 .PHONY: test
-TEST_CASES := $(wildcard $(INPUT_DIR)/*.nc)
 
 
 nanoC: y.tab.o lex.yy.o $(MAIN)_translator.o $(MAIN)_converter.o 
@@ -49,13 +49,13 @@ run:  nanoC libmyl.a
 	mkdir -p $(OUTPUT_DIR)
 
 	$(foreach test_case,$(TEST_CASES),\
-		echo Starting Test Case $$(basename $(test_case) .nc); \
-        ./nanoC < $(test_case) > $(QUAD_DIR)/$$(basename $(test_case) .nc).out; \
-        mv output.s ./$(ASSEMBLY_DIR)/$$(basename $(test_case) .nc).s; \
-		echo Assembly File $(ASSEMBLY_DIR)/$$(basename $(test_case) .nc).s made; \
+		echo Starting Test Case $(test_case); \
+        ./nanoC < $(INPUT_DIR)/$(MAIN)_test$(test_case).nc > $(QUAD_DIR)/$(MAIN)_quads$(test_case).out; \
+        mv output.s ./$(ASSEMBLY_DIR)/$(MAIN)_quads$(test_case).s; \
+		echo Assembly File ./$(ASSEMBLY_DIR)/$(MAIN)_quads$(test_case).s made; \
 		echo Compiling .o File $$(basename $(test_case) .nc).o; \
-		gcc -no-pie -g -Wall -c ./$(ASSEMBLY_DIR)/$$(basename $(test_case) .nc).s -o ./$(OUTPUT_DIR)/$$(basename $(test_case) .nc).o; \
-		gcc -no-pie -g  ./$(OUTPUT_DIR)/$$(basename $(test_case) .nc).o -o ./$(EXEC_DIR)/$$(basename $(test_case) .nc) -L. -lmyl; \
-		echo Executable File for $$(basename $(test_case) .nc) made. To run, use command ./$(EXEC_DIR)/$$(basename $(test_case) .nc); \
+		gcc -no-pie -g -Wall -c ./$(ASSEMBLY_DIR)/$(MAIN)_quads$(test_case).s -o ./$(OUTPUT_DIR)/$(MAIN)_quads$(test_case).o; \
+		gcc -no-pie -g  ./$(OUTPUT_DIR)/$(MAIN)_quads$(test_case).o -o ./$(EXEC_DIR)/$(MAIN)_exec$(test_case) -L. -lmyl; \
+		echo Executable File for Test case $(test_case) made. To run, use command ./$(EXEC_DIR)/$(MAIN)_exec$(test_case); \
 		echo; \
     )

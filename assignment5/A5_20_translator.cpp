@@ -1,13 +1,4 @@
 #include "A5_20_translator.h"
-
-//#########################################
-//## Ashish Rekhani (20CS10010)          ##
-//## Ashwani Kumar Kamal (20CS10011)     ##
-//## Compilers Laboratory                ##
-//## Assignment - 5                      ##
-//#########################################
-//# GCC version: gcc (GCC) 12.1.1 20220730
-
 #include <bits/stdc++.h>
 using namespace std;                                                     
 
